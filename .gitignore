@@ -1,0 +1,10 @@
+# Vercel
+.vercel
+
+# Contenu privé : les images produits sont servies depuis Cloudflare R2, pas depuis ce repo public
+img/
+
+# OS / éditeurs
+.DS_Store
+Thumbs.db
+*.log

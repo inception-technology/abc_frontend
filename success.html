@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Commande confirmée — ART BEYOND CONVENIENCE</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; height: 100%; }
+  body {
+    background: oklch(0.2 0.012 60); color: oklch(0.92 0.006 70);
+    font-family: 'Space Mono', monospace; -webkit-font-smoothing: antialiased;
+    display: flex; align-items: center; justify-content: center; padding: 24px; min-height: 100vh;
+  }
+  .card { max-width: 480px; width: 100%; text-align: center; }
+  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 0.14em; opacity: 0.7; }
+  .tick {
+    width: 68px; height: 68px; margin: 28px auto 22px; border-radius: 50%;
+    background: oklch(0.66 0.15 150); color: #fff; display: grid; place-items: center; font-size: 34px;
+    animation: pop 0.4s cubic-bezier(0.22,0.61,0.36,1) both;
+  }
+  @keyframes pop { from { transform: scale(0.4); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(26px, 6vw, 38px); margin: 0 0 12px; line-height: 1.05; }
+  p { font-size: 13px; line-height: 1.75; opacity: 0.8; margin: 0 auto 8px; max-width: 40ch; }
+  .ref { margin-top: 18px; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.6; }
+  .btn {
+    display: inline-block; margin-top: 30px; text-decoration: none;
+    background: #fff; color: #111; font-weight: 700; font-size: 11px;
+    letter-spacing: 0.16em; text-transform: uppercase; padding: 14px 26px;
+  }
+  .btn:hover { background: oklch(0.92 0.02 70); }
+</style>
+</head>
+<body>
+  <div class="card">
+    <div class="brand">ART BEYOND CONVENIENCE</div>
+    <div class="tick">✓</div>
+    <h1 id="title">Commande confirmée</h1>
+    <p id="msg">Merci ! Votre paiement a bien été reçu. Votre pièce unique est réservée et un e-mail de confirmation vous parvient sous peu.</p>
+    <div class="ref" id="ref"></div>
+    <a class="btn" id="back" href="/">Retour à la boutique</a>
+  </div>
+<script>
+  (function () {
+    var lang = "fr";
+    try { var l = localStorage.getItem("abc_lang"); if (l === "en" || l === "fr") lang = l; } catch (e) {}
+    // Paiement réussi : on vide le panier.
+    try { localStorage.removeItem("abc_cart"); } catch (e) {}
+
+    var T = {
+      fr: { title: "Commande confirmée", msg: "Merci ! Votre paiement a bien été reçu. Votre pièce unique est réservée et un e-mail de confirmation vous parvient sous peu.", back: "Retour à la boutique", ref: "Référence" },
+      en: { title: "Order confirmed", msg: "Thank you! Your payment was received. Your one-of-a-kind piece is reserved and a confirmation e-mail is on its way.", back: "Back to the shop", ref: "Reference" }
+    };
+    var t = T[lang];
+    document.documentElement.lang = lang;
+    document.getElementById("title").textContent = t.title;
+    document.getElementById("msg").textContent = t.msg;
+    document.getElementById("back").textContent = t.back;
+
+    try {
+      var sid = new URLSearchParams(location.search).get("session_id") || "";
+      var ref = sid.replace(/^cs_(test_|live_)?/, "").slice(0, 10).toUpperCase();
+      if (ref) document.getElementById("ref").textContent = t.ref + " · ABC-" + ref;
+    } catch (e) {}
+  })();
+</script>
+</body>
+</html>

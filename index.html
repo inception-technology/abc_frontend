@@ -1,0 +1,1267 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ART BEYOND CONVENIENCE — Mode & culture urbaine</title>
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/logo.png">
+<script>window.ABC_API_BASE = "https://web-production-62bbe.up.railway.app/";</script>
+<!-- Vercel Web Analytics + Speed Insights (site statique) -->
+<script defer src="/_vercel/insights/script.js"></script>
+<script defer src="/_vercel/speed-insights/script.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: oklch(0.955 0.006 70);
+    color: oklch(0.2 0.012 60);
+    font-family: 'Space Mono', monospace;
+    -webkit-font-smoothing: antialiased;
+  }
+  a { color: oklch(0.55 0.11 40); text-decoration: none; }
+  a:hover { color: oklch(0.45 0.11 40); }
+
+  button { font-family: 'Space Mono', monospace; }
+
+  @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes lbCard { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
+  @keyframes drawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+
+  /* header */
+  .hdr {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 40;
+    display: flex; align-items: center; justify-content: space-between; gap: 20px;
+    padding: 16px 24px; color: #fff; pointer-events: none;
+    background: linear-gradient(to bottom, rgba(18,16,15,0.55), rgba(18,16,15,0));
+  }
+  .brandwrap { display: flex; align-items: center; gap: 10px; }
+  .logo-chip { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 7px; background: #fff; padding: 4px; display: grid; place-items: center; }
+  .logo-chip img { width: 100%; height: 100%; object-fit: contain; display: block; }
+  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.05em; line-height: 1.05; white-space: nowrap; }
+  .tagline { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.85; margin-top: 5px; white-space: nowrap; }
+  @media (max-width: 480px) {
+    .brand { font-size: 12px; letter-spacing: 0.03em; }
+    .logo-chip { width: 30px; height: 30px; }
+  }
+  @media (max-width: 340px) {
+    .tagline { display: none; }
+  }
+
+  .pills { pointer-events: auto; display: flex; align-items: center; gap: 6px; padding: 5px; border: 1px solid rgba(255,255,255,0.5); }
+  .pill {
+    appearance: none; background: transparent; border: 0; color: #fff;
+    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 6px 11px; cursor: pointer; transition: background .15s, color .15s;
+  }
+  .pill.active { background: #fff; color: #111; }
+
+  .right { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
+  .langbtn, .cartbtn {
+    appearance: none; display: flex; align-items: center; gap: 6px;
+    background: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;
+    font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 7px 12px; cursor: pointer;
+  }
+  .cartbtn { position: relative; }
+  .cart-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 17px; height: 17px; padding: 0 5px; border-radius: 9px;
+    background: oklch(0.62 0.16 40); color: #fff; font-size: 10px; font-weight: 700;
+    letter-spacing: 0; line-height: 1;
+  }
+  .meta-right { text-align: right; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
+  .meta-right div { opacity: 0.85; }
+  .meta-right div + div { margin-top: 5px; }
+
+  @media (max-width: 720px) {
+    .pills { display: none; }
+    .meta-right { display: none; }
+  }
+
+  /* Mobile: keep the recomposition mosaic, laid out as a responsive
+     grid of 1 / 2 / 3 columns (column count chosen in mobileCols()). */
+  @media (max-width: 640px) {
+    .stage { inset: 70px 10px 12px; }
+  }
+  /* Touch devices have no hover: always show the quick-add button. */
+  @media (hover: none) {
+    .tile-add { opacity: 1; pointer-events: auto; }
+  }
+
+  /* mosaic */
+  .driver { position: relative; height: 520vh; }
+  .stick { position: sticky; top: 0; height: 100vh; overflow: hidden; }
+  .stage { position: absolute; inset: 82px 24px 24px 24px; }
+  .grid { position: relative; width: 100%; height: 100%; }
+
+  .tile {
+    position: absolute; left: 0; top: 0; width: 80px; height: 80px; overflow: hidden;
+    background: oklch(0.9 0.006 70); cursor: pointer; will-change: left, top, width, height;
+    border-radius: 10px;
+    --fs: 12px;
+  }
+  .ph { position: absolute; inset: 0; display: grid; place-items: center; }
+  .ph .ghost {
+    font-family: 'Syne', sans-serif; font-weight: 800;
+    font-size: calc(var(--fs) * 4.4); line-height: 1; color: rgba(255,255,255,0.16);
+    letter-spacing: -0.02em;
+  }
+  .phb { position: absolute; inset: 0; opacity: 0; }
+
+  .metaov {
+    position: absolute; left: 0; right: 0; bottom: 0; padding: calc(var(--fs) * 0.9);
+    background: linear-gradient(to top, rgba(15,14,13,0.78), rgba(15,14,13,0.3) 55%, transparent);
+    color: #fff; pointer-events: none; z-index: 5;
+  }
+  .metaov .num { font-size: calc(var(--fs) * 0.72); letter-spacing: 0.18em; opacity: 0.75; font-variant-numeric: tabular-nums; }
+  .metaov .ttl { font-family: 'Syne', sans-serif; font-weight: 700; font-size: calc(var(--fs) * 1.18); line-height: 1.02; margin-top: 3px; text-wrap: balance; }
+  .metaov .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 5px; }
+  .metaov .cat { font-size: calc(var(--fs) * 0.66); letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.82; }
+  .metaov .price { font-size: calc(var(--fs) * 0.82); font-weight: 700; opacity: 0.95; font-variant-numeric: tabular-nums; }
+
+  .tile-add {
+    position: absolute; top: calc(var(--fs) * 0.7); right: calc(var(--fs) * 0.7); z-index: 6;
+    appearance: none; border: 0; cursor: pointer;
+    width: calc(var(--fs) * 2.1); height: calc(var(--fs) * 2.1); border-radius: 50%;
+    background: rgba(255,255,255,0.92); color: #111;
+    font-size: calc(var(--fs) * 1.3); font-weight: 700; line-height: 1;
+    display: grid; place-items: center; opacity: 0; transition: opacity .18s, transform .12s, background .15s;
+    pointer-events: none;
+  }
+  .tile:hover .tile-add { opacity: 1; pointer-events: auto; }
+  .tile-add:hover { background: oklch(0.62 0.16 40); color: #fff; }
+  .tile-add:active { transform: scale(0.9); }
+
+  /* lightbox */
+  .lb-scrim {
+    position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
+    padding: 5vh 5vw; background: rgba(18,16,15,0.86); backdrop-filter: blur(6px);
+    animation: lbIn 0.22s ease both; cursor: zoom-out;
+  }
+  .lb-card {
+    display: flex; flex-direction: column; width: min(760px, 92vw); max-height: 90vh;
+    background: oklch(0.965 0.006 70); animation: lbCard 0.32s cubic-bezier(0.22,0.61,0.36,1) both;
+    cursor: default; overflow: hidden;
+  }
+  .lb-img { position: relative; width: 100%; aspect-ratio: 1 / 1; background: oklch(0.9 0.006 70); overflow: hidden; }
+  .lb-img .ghost { font-size: 96px; }
+  .lb-nav {
+    position: absolute; top: 50%; transform: translateY(-50%); z-index: 6;
+    appearance: none; border: 0; cursor: pointer; width: 40px; height: 40px;
+    background: rgba(255,255,255,0.9); color: #111; font-size: 24px; line-height: 1;
+    display: grid; place-items: center; border-radius: 50%; transition: background .15s;
+  }
+  .lb-nav:hover { background: #fff; }
+  .lb-nav.prev { left: 12px; }
+  .lb-nav.next { right: 12px; }
+  .lb-count {
+    position: absolute; top: 12px; right: 12px; z-index: 6;
+    background: rgba(15,14,13,0.66); color: #fff; font-size: 11px; letter-spacing: 0.08em;
+    padding: 4px 9px; border-radius: 20px; font-variant-numeric: tabular-nums;
+  }
+  .lb-dots { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 6; display: flex; justify-content: center; gap: 7px; }
+  .lb-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.55); cursor: pointer; transition: background .15s, transform .15s; }
+  .lb-dot.on { background: #fff; transform: scale(1.25); }
+  .lb-thumbs { display: flex; gap: 8px; padding: 12px 26px 0; overflow-x: auto; }
+  .lb-thumb { flex: 0 0 auto; width: 54px; height: 54px; border-radius: 6px; overflow: hidden; cursor: pointer; opacity: 0.55; outline: 2px solid transparent; transition: opacity .15s, outline-color .15s; }
+  .lb-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lb-thumb.on { opacity: 1; outline-color: oklch(0.55 0.16 40); }
+  .lb-thumb:hover { opacity: 1; }
+  .zoom-scrim { position: fixed; inset: 0; z-index: 80; background: rgba(10,9,8,0.95); display: flex; align-items: center; justify-content: center; padding: 3vh 3vw; cursor: zoom-out; animation: lbIn 0.18s ease both; }
+  .zoom-img { max-width: 96vw; max-height: 94vh; object-fit: contain; display: block; }
+  .tile-multi {
+    position: absolute; top: calc(var(--fs) * 0.7); left: calc(var(--fs) * 0.7); z-index: 6;
+    display: inline-flex; align-items: center; gap: 3px; pointer-events: none;
+    background: rgba(15,14,13,0.6); color: #fff; border-radius: 20px;
+    font-size: calc(var(--fs) * 0.66); letter-spacing: 0.04em; padding: calc(var(--fs) * 0.22) calc(var(--fs) * 0.55);
+    font-variant-numeric: tabular-nums;
+  }
+  .lb-body { padding: 22px 26px 26px; display: flex; flex-direction: column; gap: 10px; overflow: auto; }
+  .lb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
+  .lb-cat { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: oklch(0.55 0.11 40); }
+  .lb-num { font-size: 11px; letter-spacing: 0.2em; opacity: 0.55; font-variant-numeric: tabular-nums; }
+  .lb-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(26px, 4vw, 40px); line-height: 1.02; margin: 0; text-wrap: balance; }
+  .lb-desc { font-size: 13px; line-height: 1.7; opacity: 0.78; margin: 4px 0 0; max-width: 52ch; }
+  .lb-buy { display: flex; align-items: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
+  .lb-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; }
+  .btn-primary {
+    appearance: none; background: oklch(0.2 0.012 60); color: #fff; border: 0;
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; padding: 13px 22px; cursor: pointer;
+    transition: background .15s;
+  }
+  .btn-primary:hover { background: oklch(0.32 0.05 40); }
+  .btn-ghost {
+    appearance: none; background: transparent; color: oklch(0.2 0.012 60); border: 1px solid oklch(0.2 0.012 60 / 0.35);
+    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; padding: 12px 18px; cursor: pointer;
+  }
+  .btn-ghost:hover { border-color: oklch(0.2 0.012 60); }
+
+  /* cart drawer */
+  .cart-scrim { position: fixed; inset: 0; z-index: 70; background: rgba(18,16,15,0.5); animation: lbIn 0.2s ease both; }
+  .cart {
+    position: fixed; top: 0; right: 0; bottom: 0; z-index: 71; width: min(420px, 100vw);
+    background: oklch(0.965 0.006 70); display: flex; flex-direction: column;
+    animation: drawerIn 0.3s cubic-bezier(0.22,0.61,0.36,1) both; box-shadow: -20px 0 60px rgba(18,16,15,0.3);
+  }
+  .cart-head { display: flex; align-items: center; justify-content: space-between; padding: 22px 22px 16px; border-bottom: 1px solid oklch(0.2 0.012 60 / 0.12); }
+  .cart-head h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin: 0; letter-spacing: 0.02em; }
+  .cart-close { appearance: none; background: transparent; border: 0; font-size: 22px; line-height: 1; cursor: pointer; color: oklch(0.2 0.012 60); padding: 4px 8px; }
+  .cart-items { flex: 1; overflow: auto; padding: 8px 22px; }
+  .cart-empty { opacity: 0.55; font-size: 13px; text-align: center; padding: 60px 10px; line-height: 1.7; }
+  .ci { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid oklch(0.2 0.012 60 / 0.1); }
+  .ci-thumb { width: 66px; height: 66px; flex: 0 0 66px; overflow: hidden; position: relative; background: oklch(0.9 0.006 70); }
+  .ci-thumb .ghost { font-size: 30px; }
+  .ci-main { flex: 1; min-width: 0; }
+  .ci-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; line-height: 1.1; }
+  .ci-cat { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; margin-top: 3px; }
+  .ci-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; gap: 10px; }
+  .qty { display: inline-flex; align-items: center; border: 1px solid oklch(0.2 0.012 60 / 0.3); }
+  .qty button { appearance: none; background: transparent; border: 0; width: 26px; height: 26px; cursor: pointer; font-size: 15px; line-height: 1; color: oklch(0.2 0.012 60); }
+  .qty button:hover { background: oklch(0.2 0.012 60 / 0.08); }
+  .qty span { min-width: 26px; text-align: center; font-size: 13px; font-variant-numeric: tabular-nums; }
+  .ci-price { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+  .ci-remove { appearance: none; background: transparent; border: 0; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.5; cursor: pointer; padding: 0; margin-top: 6px; }
+  .ci-remove:hover { opacity: 1; color: oklch(0.55 0.16 30); }
+  .cart-foot { padding: 18px 22px 24px; border-top: 1px solid oklch(0.2 0.012 60 / 0.12); }
+  .cart-line { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
+  .cart-total { display: flex; align-items: baseline; justify-content: space-between; margin: 10px 0 16px; }
+  .cart-total .lbl { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.7; }
+  .cart-total .val { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; font-variant-numeric: tabular-nums; }
+  .checkout-btn { width: 100%; text-align: center; }
+
+  /* checkout confirmation */
+  .confirm { text-align: center; padding: 40px 10px; animation: toastIn 0.35s ease both; }
+  .confirm .tick { width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 50%; background: oklch(0.62 0.14 150); color: #fff; display: grid; place-items: center; font-size: 28px; }
+  .confirm h3 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; margin: 0 0 8px; }
+  .confirm p { font-size: 13px; line-height: 1.7; opacity: 0.72; margin: 0 auto; max-width: 34ch; }
+  .confirm .order { margin-top: 14px; font-size: 12px; letter-spacing: 0.14em; opacity: 0.9; }
+
+  /* toast */
+  .toast {
+    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 90;
+    background: oklch(0.2 0.012 60); color: #fff; padding: 12px 20px;
+    font-size: 12px; letter-spacing: 0.06em; animation: toastIn 0.25s ease both;
+    box-shadow: 0 10px 30px rgba(18,16,15,0.35); pointer-events: none;
+  }
+
+  /* footer / about */
+  .foot {
+    position: relative; z-index: 1; background: oklch(0.2 0.012 60); color: oklch(0.86 0.006 70);
+    padding: 64px 26px 72px;
+  }
+  .foot-inner { max-width: 680px; margin: 0 auto; text-align: center; }
+  .foot-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(30px, 6vw, 52px); line-height: 0.95; letter-spacing: -0.01em; }
+  .about { margin-top: 26px; font-size: 13px; line-height: 1.85; opacity: 0.82; }
+  .about p { margin: 0 0 14px; text-align: center; }
+  .about p:last-child { margin-bottom: 0; }
+  .about em { opacity: 0.7; font-size: 12px; }
+  .foot-contact { margin-top: 40px; padding-top: 24px; border-top: 1px solid oklch(0.86 0.006 70 / 0.16); font-size: 12px; letter-spacing: 0.06em; }
+  .foot-contact a { color: oklch(0.86 0.006 70); }
+  .foot-contact a:hover { color: #fff; }
+  .foot-legal { margin-top: 8px; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.55; }
+  .socials { margin-top: 34px; display: flex; justify-content: center; gap: 14px; }
+  .socials a { display: inline-flex; width: 40px; height: 40px; border-radius: 50%; align-items: center; justify-content: center; color: oklch(0.86 0.006 70); border: 1px solid oklch(0.86 0.006 70 / 0.22); transition: color .15s, background .15s, border-color .15s; }
+  .socials a:hover { color: #111; background: #fff; border-color: #fff; }
+  .socials svg { width: 19px; height: 19px; display: block; }
+
+  /* listen / SoundCloud */
+  .listen { position: relative; z-index: 1; background: oklch(0.24 0.012 60); color: oklch(0.9 0.006 70); padding: 56px 26px; }
+  .listen-inner { max-width: 680px; margin: 0 auto; text-align: center; }
+  .listen-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(24px, 5vw, 36px); letter-spacing: 0.01em; line-height: 1; }
+  .listen-sub { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.6; margin-top: 8px; }
+  .sc-player { width: 100%; height: 400px; border: 0; margin-top: 22px; border-radius: 8px; display: block; }
+</style>
+</head>
+<body>
+
+<header class="hdr">
+  <div style="pointer-events:auto;">
+    <div class="brandwrap">
+      <span class="logo-chip"><img src="/logo.png" alt="ART BEYOND CONVENIENCE" width="34" height="34"></span>
+      <div>
+        <div class="brand">ART BEYOND CONVENIENCE</div>
+        <div class="tagline" id="tagline"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="right">
+    <button class="langbtn" id="langBtn" title="FR / EN"><span style="opacity:.55;">↔</span><span id="langLabel"></span></button>
+    <button class="cartbtn" id="cartBtn"><span id="cartWord"></span><span class="cart-count" id="cartCount">0</span></button>
+    <div class="meta-right">
+      <div id="countLabel"></div>
+      <div id="scrollLabel"></div>
+    </div>
+  </div>
+</header>
+
+<div class="driver" id="driver">
+  <div class="stick">
+    <div class="stage">
+      <div class="grid" id="grid"></div>
+    </div>
+  </div>
+</div>
+
+<section class="listen">
+  <div class="listen-inner">
+    <div class="listen-title" id="listenTitle">Écouter</div>
+    <div class="listen-sub" id="listenSub"></div>
+    <iframe class="sc-player" title="ABC — Split the Lyricist" allow="autoplay" loading="lazy"
+      scrolling="no" frameborder="no"
+      src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fsplit_the_lyricist%2Fsets%2Fabc&color=%23e0563a&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>
+  </div>
+</section>
+
+<footer class="foot">
+  <div class="foot-inner">
+    <div class="foot-title" id="footTitle"></div>
+    <div class="about" id="aboutText"></div>
+    <div class="socials" aria-label="Réseaux sociaux">
+      <a href="https://www.tiktok.com/@split_the_lyricist" target="_blank" rel="noopener" title="TikTok" aria-label="TikTok">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.31 2.05 1.53 3.4 3.5 3.6v2.45c-1.28.12-2.5-.28-3.62-1.02v5.72c0 3.35-2.4 5.75-5.56 5.75-3.02 0-5.32-2.3-5.32-5.3 0-3.2 2.62-5.5 6-5.13v2.63c-.42-.13-.86-.2-1.3-.2-1.4 0-2.4 1.02-2.4 2.4 0 1.4 1 2.47 2.42 2.47 1.5 0 2.48-1.12 2.48-2.82V3h3.42z"/></svg>
+      </a>
+      <a href="https://www.instagram.com/split_the_lyricist/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://www.youtube.com/@ArtBeyondConvenience" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.41-4.73a2.5 2.5 0 0 0-1.76-1.76C19.3 5.1 12 5.1 12 5.1s-7.3 0-8.83.41A2.5 2.5 0 0 0 1.4 7.27C1 8.8 1 12 1 12s0 3.2.41 4.73a2.5 2.5 0 0 0 1.76 1.76C4.7 18.9 12 18.9 12 18.9s7.3 0 8.83-.41a2.5 2.5 0 0 0 1.76-1.76C23 15.2 23 12 23 12zM9.75 15.3V8.7L15.5 12l-5.75 3.3z"/></svg>
+      </a>
+      <a href="https://soundcloud.com/split_the_lyricist" target="_blank" rel="noopener" title="SoundCloud" aria-label="SoundCloud">
+        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 14.2v2.8h.9v-2.8H2zm1.8-1.3V17h.9v-4.1h-.9zm1.8-.8V17h.9v-4.9h-.9zm1.8-.7V17h.9V11.4h-.9zm1.9.7V17h.9v-6.2h-.9zm2.6-3.2c-.5 0-1 .1-1.5.3V17h7.1a2.55 2.55 0 0 0 .1-5.1c-.25 0-.5.04-.73.1A4.02 4.02 0 0 0 12.7 8.9z"/></svg>
+      </a>
+    </div>
+    <div class="foot-contact">
+      <a href="mailto:contact@artbeyondconvenience.fr">contact@artbeyondconvenience.fr</a>
+      <div class="foot-legal">ABC by Split - all right reserved - 2026</div>
+    </div>
+  </div>
+</footer>
+
+<div id="modals"></div>
+<div id="toasts"></div>
+
+<script>
+(function () {
+  "use strict";
+
+  // ---------------------------------------------------------------------------
+  // Data (from Patchwork.dc.html) — [title, category, description]
+  // ---------------------------------------------------------------------------
+  var CATALOG = [
+    {id:"14",name:"Cobain 27",cat:"sweater",price:60,color:"Gris chiné clair",size:"XL",ref:"COBAI-SWE-HLG-XL",qty:1,img:"cobain-27.jpg",descFr:"L'arithmétique macabre de Kurt Cobain. Club 27. Faites vos calculs. Création Française.",descEn:"Kurt Cobain's grisly arithmetic. Club 27. Do your math. French Creation."},
+    {id:"10",name:"Big Numbers",cat:"sweater",price:60,color:"Noir",size:"XL",ref:"BIGNU-SWE-BLK-XL",qty:1,img:"big-numbers.jpg",descFr:"Le Notorious BIG en quelques chiffres. Tout en peinture, ne perdez pas le fils du rouge. Création Française.",descEn:"The Notorious BIG in a few figures. Everything painted, don't lose the red thread. French Creation."},
+    {id:"20",name:"Emo Lisabeth T",cat:"sweater",price:60,color:"Gris chiné clair",size:"L",ref:"EMOLI-SWE-HLG-L",qty:1,img:"emo-lisabeth-t.jpg",descFr:"Portrait d'Elizabeth Taylor revisité. Quelques patch sombre, un peu de rimmel, des tatouages et Elizabeth vous ensorcelle. Ceci n'est pas Moschino. Création Française.",descEn:"A new sight on Elisabeth Taylor. A few gloomy patches, a bit of mascara, tattoos and Elizabeth bewitches you. This is not Moschino. French creation."},
+    {id:"17",name:"Fanksy Art",cat:"sweater",price:60,color:"Noir",size:"M",ref:"FANKS-SWE-BLK-M",qty:0,img:"fanksy-art.jpg",descFr:"Quand l'art de Banksy se mélange au luxe. De l'art de rue bordé de luxe. Ceci n'est pas Fendi, ceci n'est pas Banksy Création Française.",descEn:"When Banksy's art mixes with luxury. Street art bordered by luxury. This is not Fendi, this is not Banksy. French Creation."},
+    {id:"9",name:"Iron Mike",cat:"sweater",price:60,color:"Tie dye noir",size:"L",ref:"IRON-SWE-TDB-L",qty:1,img:"iron-mike.jpg",descFr:"Quand tout est lourd avec Mike Tyson Un sweat tie dye confortable pour porter du lourd. Création Française.",descEn:"When everything is heavy with Mike Tyson A comfortable tie dye sweater to wear heavy stuff. French Creation."},
+    {id:"19",name:"J.F.King",cat:"sweater",price:60,color:"Gris",size:"L",ref:"JFKIN-SWE-GRY-L",qty:1,img:"jfking.jpg",descFr:"J.F. Kennedy, un homme aux ambitions suicidaires. Quelques patch, un crochet et beaucoup de pochoirs. Derrière chaque grand projet se cache de grands enjeux. Malheureux incident ou sacrifice d'agenda, bientôt les dossiers déclassés … Création Française.",descEn:"J.F. Kennedy, a man with suicidal ambitions. A few patches, a crochet hook and a lot of stencils. Behind every major project hides major challenges. Unfortunate incident or agenda's sacrifice, soon the files will be declassified... French creation."},
+    {id:"18",name:"Jok Nicholson",cat:"sweater",price:60,color:"Tie dye rouge",size:"XL",ref:"JOKNI-SWE-TDR-XL",qty:1,img:"jok-nicholson.jpg",descFr:"Jack Nicholson culte. \"As-tu jamais dansé avec le diable au clair de lune ?\" Le Joker - Batman (1989). Un sweat en tie dye d'énigmes. Création Française.",descEn:"Jack Nicholson is cult. \"Have you ever danced with the devil in the moonlight?\" The Joker - Batman (1989). A tie dye sweatshirt full of enigmas. French creation."},
+    {id:"13",name:"Optical Kiss",cat:"sweater",price:60,color:"Blanc",size:"XL",ref:"OPTIC-SWE-WHT-XL",qty:1,img:"",descFr:"Le baiser d'un milliardaire. Un Kiss iconique dans un blanc optique. Création Française.",descEn:"A billionaire's kiss. An iconic Kiss in optic white. French creation."},
+    {id:"3",name:"Tyler Champ",cat:"sweater",price:60,color:"Multicolor",size:"L",ref:"TYLER-SWE-MLT-L",qty:1,img:"tyler-champ.jpg",descFr:"Tyler the Creator. Un Tyler block sur un sweat color block. Ceci n'est pas Champion. Création Française.",descEn:"Tyler the Creator. A Tyler block on a color block sweater. This is not Champion. Creation French."},
+    {id:"6",name:"Pablo V",cat:"sweater",price:60,color:"Gris anthracite",size:"XL",ref:"PABLO-SWE-CGR-XL",qty:0,img:"pablo-v.jpg",descFr:"Pablo Escobar. Un sweat de destins brisés dans le luxe et la coc, sur bande réfléchissante et mousqueton. Ceci n'est pas Versace. Création Française.",descEn:"Pablo Escobar. A sweater of broken destinies in luxury and coco, with reflective stripe and carabiner. This is not Versace. French creation."},
+    {id:"8",name:"Red Rum",cat:"sweater",price:60,color:"Tie dye noir",size:"L",ref:"REDRU-SWE-TDB-L",qty:1,img:"red-rum.jpg",descFr:"American Gothic X The Shining Un sweat en tie dye aussi intense, inquiétant et énigmatique qu'un chef d'oeuvre de Wood ou de Kubrick. Création Française.",descEn:"American Gothic X The Shining A tie dye sweater as intense, disturbing and enigmatic as a Wood or a Kubrick masterpiece. French creation."},
+    {id:"5",name:"Angie Power",cat:"sweater",price:60,color:"Javellisé",size:"XL",ref:"ANGIE-SWE-BLD-XL",qty:1,img:"angie-power.jpg",descFr:"Angela Davis, figure emblématique ou problématique. Un sweat épais complètement javélisé et codé. Ceci n'est pas Champion. Création Française.",descEn:"Angela Davis, emblematic or problematic figure. A thick sweatshirt completely bleached and coded. This is not Champion. French creation."},
+    {id:"16",name:"Malcom X Ali",cat:"sweater",price:60,color:"Javellisé",size:"XL",ref:"MALCO-SWE-BLD-XL",qty:0,img:"malcom-x-ali.jpg",descFr:"Malcolm X et Mohamed Ali. Le sweat de la fraternité. Création Française.",descEn:"Malcolm X and Mohamed Ali. Brotherhood sweater. French creation."},
+    {id:"1",name:"Oscar Morrissey",cat:"tshirt",price:40,color:"Javellisé",size:"L",ref:"OSCAR-TSH-BLD-L",qty:1,img:"oscar-morrissey.jpg",descFr:"Oscar inspiration sauvage de Morrissey. “You don’t love someone because of their looks, their clothes or their fancy car, but because they sing a song that only you can hear.” « Vous n'aimez pas quelqu'un pour son apparence, ses vêtements ou sa belle voiture, mais parce qu'il chante une chanson que vous seul pouvez entendre. » @oscarWilde Création Française.",descEn:"Oscar wild inspiration from Morrissey. “You don’t love someone because of their looks, their clothes or their fancy car, but because they sing a song that only you can hear.” @oscarWilde French Creation."},
+    {id:"7",name:"M Brotherhood",cat:"tshirt",price:40,color:"Multicolor",size:"L",ref:"MBROT-TSH-MLT-L",qty:1,img:"m-brotherhood.jpg",descFr:"Frères d'M. Un tshirt bien tie dye pour mettre en valeur le N&B de M&M et quelques codes secrets. Création Française.",descEn:"M brotherz. A nice tie dye t-shirt to highlight the B&W of M&M and some secret codes. French creation."},
+    {id:"2",name:"Ali Goat",cat:"jacket",price:90,color:"Jean",size:"L",ref:"ALIGO-JAC-DNM-TU",qty:1,img:"ali-goat.jpg",descFr:"Le GOAT, Mohamed Ali. Un combat de vestes en jean pas très orthodoxe pour une dédicace au GOAT de la boxe. Création Française.",descEn:"The GOAT, Mohamed Ali. A not so orthodox denim jackets fight for a dedication to the GOAT of boxing. French creation."},
+    {id:"15",name:"Marylin Off",cat:"jacket",price:90,color:"Jean",size:"L",ref:"MARYL-JAC-DNM-TU",qty:0,img:"marylin-off.jpg",descFr:"Marylin Monroe. Une veste en jean pas si classique, tout comme Marlyn, un mousqueton porte-clés ou autre, quelques bandes pas OW et au dos ce n'est toujours pas OW. Ceci n'est pas Off-White. Création Française.",descEn:"Marylin Monroe. A not so classic denim jacket, just like Marlyn, a keychain carabiner or other, a few stripes not OW and on the back it's still not OW. This is not Off-White. French Creation."},
+    {id:"11",name:"Demnike",cat:"jacket",price:90,color:"Jean",size:"L",ref:"DEMNI-JAC-DNM-TU",qty:1,img:"",descFr:"Je veux tes skulls. Une chemise en jean manche courte, des touches de camouflage, une virgule en cuir de qualité, un bon gros Crimson Ghost pour garder tes arrières et non pas de secrets ici. Ceci n'est pas du Nike, ceci n'est pas du LV. Création Française.",descEn:"I want your skulls. A short-sleeved denim shirt, touches of camouflage, a quality leather swoosh, a big Crimson Ghost to keep your back and no secrets here. This is not Nike, this is not LV. French Creation."},
+    {id:"4",name:"Creepy Bomb",cat:"jacket",price:90,color:"Cuivré",size:"XL",ref:"CREEP-JAC-COP-TU",qty:1,img:"creepy-bomb.jpg",descFr:"Qui est ce type flippant ? Un bomber chaud, orné de patchs, un peu de peinture, quelques massacres à la tronçonneuse et beaucoup de codes secrets. Création Française.",descEn:"Who is this creepy guy? A warm bomber jacket, decorated with patches, a little paint, a few chainsaw massacres and lots of secret codes. French creation."},
+    {id:"12",name:"Army Walk",cat:"jacket",price:90,color:"Camouflage",size:"S",ref:"ARMY-JAC-CMO-TU",qty:1,img:"army-walk.jpg",descFr:"Cette veste n'est pas faite pour défiler. \"La juge nique sa mère. Le dernier juge que j'ai vu avait plus de vice que le dealer de ma rue\" @Assassin - Je glisse Une veste militaire ornée d'un skull peint, d'une bande LV en coton par dessus une fermeture éclaire, quelques épingles à nourrice, fusion en denim au dos, des patchs détachables, un mousqueton porte-clés et beaucoup de codes secrets. Ceci n'est pas LV, ceci n'est pas Supreme. Création Française.",descEn:"This jacket is not made for catwalk. \"La juge nique sa mère. Le dernier juge que j'ai vu avait plus de vice que le dealer de ma rue\" \"Motherfuc***g judge. The last judge I saw had more vice than the dealer on my block\" @Assassin - I slide A military jacket decorated with a painted skull, a cotton strip over the zipper, a few safety pins, denim fusion on the back, detachable patches, a keychain carabiner and a lot of secret codes. This is not LV, this is not Supreme. French creation."},
+  ];
+
+  var UI = {
+    fr: {
+      tagline: "Mode & culture urbaine",
+      count: "20 pièces", scroll: "Défilez ↓", close: "Fermer",
+      footTitle: "À propos", listen: "Écouter", listenSub: "La playlist ABC de Split",
+      about: "<p>Chaque création est une œuvre unique.</p><p>Conçue et réalisée à la main, elle associe des pièces neuves et des objets existants, minutieusement sélectionnés puis réinterprétés. Chaque matière est choisie pour son histoire, sa texture et sa capacité à dialoguer avec l'ensemble.</p><p>Imaginer, déconstruire, remodeler, assembler. Le geste est lent, précis, presque méditatif. Chaque œuvre naît d'un équilibre entre mémoire, détournement et création contemporaine.</p><p>Split développe depuis toujours une démarche où l'écriture et les arts plastiques se répondent. Auteur de textes depuis l'adolescence, influencé par le cinéma romantique des années 90, la chanson française à texte et l'esthétique du rap, il transpose cette même sensibilité dans ses œuvres. Chaque création est pensée comme un récit silencieux, où les objets deviennent langage et où la matière prolonge les mots.</p><p>L'œuvre n'a pas vocation à faire consensus. Elle invite à ralentir, à observer et à interroger le regard que nous portons sur les objets, leur valeur et leur fonction.</p><p>Art Beyond Convenience.</p><p><em>Nota bene : Conformément au Code de la propriété intellectuelle, certaines créations peuvent intégrer des œuvres préexistantes dans une démarche de parodie, de pastiche ou de caricature. Elles relèvent de la liberté d'expression artistique et participent à une réflexion critique sur les images, les objets et la culture contemporaine.</em></p>",
+      other: "EN", cart: "Panier", add: "Ajouter au panier", added: "Ajouté au panier",
+      empty: "Votre panier est vide.<br>Ajoutez une pièce depuis la mosaïque.",
+      subtotal: "Sous-total", shipping: "Livraison", free: "Offerte", total: "Total",
+      checkout: "Passer commande", remove: "Retirer", continue: "Continuer",
+      confirmTitle: "Commande confirmée",
+      confirmMsg: "Merci ! Votre commande de pièces uniques a bien été enregistrée. Un e-mail de confirmation vous attend.",
+      order: "Commande", unique: "Pièce unique",
+      color: "Couleur", size: "Taille", ref: "Réf.",
+      soldout: "Épuisé", inCart: "Déjà dans le panier", lastOne: "Dernière pièce",
+    },
+    en: {
+      tagline: "Fashion & urban culture",
+      count: "20 pieces", scroll: "Scroll ↓", close: "Close",
+      footTitle: "About", listen: "Listen", listenSub: "Split's ABC playlist",
+      about: "<p>Each creation is a one-of-a-kind work of art.</p><p>Designed and handcrafted, every piece combines new and reclaimed components, carefully selected and reinterpreted. Each material is chosen for its history, texture, and ability to engage in dialogue with the whole.</p><p>Imagine. Deconstruct. Reshape. Assemble. The process is deliberate, meticulous, almost meditative. Every work emerges from a balance of memory, transformation, and contemporary creation.</p><p>Split has always developed a practice where writing and visual art coexist. Writing lyrics since adolescence, influenced by 1990s romantic cinema, French chanson, and the raw energy of rap, he brings the same sensibility into his artworks. Each creation is conceived as a silent narrative, where objects become language and materials extend what words cannot express.</p><p>The work is not intended to reach consensus. It invites viewers to slow down, observe, and question the way we perceive objects, their value, and their purpose.</p><p>Art Beyond Convenience.</p><p><em>Note: In accordance with intellectual property law, some artworks may incorporate pre-existing works as parody, pastiche, or caricature. These creations are part of artistic freedom of expression and aim to encourage reflection, interpretation, and dialogue about images, objects, and contemporary culture.</em></p>",
+      other: "FR", cart: "Cart", add: "Add to cart", added: "Added to cart",
+      empty: "Your cart is empty.<br>Add a piece from the mosaic.",
+      subtotal: "Subtotal", shipping: "Shipping", free: "Free", total: "Total",
+      checkout: "Checkout", remove: "Remove", continue: "Continue shopping",
+      confirmTitle: "Order confirmed",
+      confirmMsg: "Thank you! Your order of one-of-a-kind pieces has been placed. A confirmation e-mail is on its way.",
+      order: "Order", unique: "One-of-a-kind",
+      color: "Color", size: "Size", ref: "Ref.",
+      soldout: "Sold out", inCart: "Already in cart", lastOne: "Last one",
+    },
+  };
+
+  var CAT_LABEL = {
+    fr: { tshirt: "T-shirt", sweater: "Sweat", jacket: "Veste" },
+    en: { tshirt: "T-shirt", sweater: "Sweater", jacket: "Jacket" },
+  };
+
+  // ---------------------------------------------------------------------------
+  // State
+  // ---------------------------------------------------------------------------
+  var state = {
+    effect: "recompose",
+    lang: "fr",
+    lb: null,          // lightbox index
+    cartOpen: false,
+    checkout: false,   // showing confirmation
+    cart: {},          // { index: qty }
+    orderNo: null,
+  };
+
+  // persistence (safe on file:// via try/catch)
+  try {
+    var saved = localStorage.getItem("patchwork_cart");
+    if (saved) state.cart = JSON.parse(saved) || {};
+    var savedLang = localStorage.getItem("patchwork_lang");
+    if (savedLang === "en" || savedLang === "fr") state.lang = savedLang;
+  } catch (e) {}
+
+  function persist() {
+    try {
+      localStorage.setItem("patchwork_cart", JSON.stringify(state.cart));
+      localStorage.setItem("patchwork_lang", state.lang);
+    } catch (e) {}
+  }
+
+  var N = CATALOG.length;
+
+  function resolveImg(u) { return u ? (/^https?:\/\//.test(u) ? u : ("img/" + u)) : ""; }
+
+  function articlesFor(lang) {
+    return CATALOG.map(function (p, i) {
+      var srcs = (p.images && p.images.length) ? p.images : (p.img ? [p.img] : []);
+      var imgs = srcs.map(resolveImg).filter(Boolean);
+      return {
+        i: i,
+        id: p.id,
+        numLabel: String(i + 1).padStart(2, "0"),
+        title: p.name, cat: p.cat,
+        desc: lang === "fr" ? p.descFr : p.descEn,
+        price: p.price,
+        color: p.color, size: p.size, ref: p.ref, stock: p.qty,
+        img: imgs[0] || "",
+        images: imgs,
+      };
+    });
+  }
+  var articles = articlesFor(state.lang);
+
+  function money(v) {
+    return state.lang === "fr" ? (v + " €") : ("€" + v);
+  }
+
+  // deterministic patchwork tile background per index
+  function tileBg(i) {
+    var h1 = (i * 47 + 20) % 360;
+    var h2 = (i * 83 + 200) % 360;
+    var c1 = "oklch(0.62 0.11 " + h1 + ")";
+    var c2 = "oklch(0.42 0.09 " + h2 + ")";
+    var c3 = "oklch(0.72 0.08 " + ((h1 + 40) % 360) + ")";
+    return "linear-gradient(135deg, " + c1 + " 0%, " + c2 + " 60%, " + c3 + " 100%)";
+  }
+
+  // ---------------------------------------------------------------------------
+  // Seeded arrangements (ported from the original component)
+  // ---------------------------------------------------------------------------
+  function rng(seed) {
+    var s = seed >>> 0;
+    return function () {
+      s |= 0; s = (s + 0x6D2B79F5) | 0;
+      var t = Math.imul(s ^ (s >>> 15), 1 | s);
+      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+    };
+  }
+  function shuffle(arr, rnd) {
+    var a = arr.slice();
+    for (var i = a.length - 1; i > 0; i--) {
+      var j = Math.floor(rnd() * (i + 1));
+      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
+    }
+    return a;
+  }
+  function partition(x, y, w, h, idxs, weights, horiz, out) {
+    if (idxs.length === 1) { out[idxs[0]] = { x: x, y: y, w: w, h: h }; return; }
+    var total = idxs.reduce(function (s, k) { return s + weights[k]; }, 0);
+    var acc = 0, split = 1;
+    for (var k = 0; k < idxs.length; k++) {
+      acc += weights[idxs[k]];
+      if (acc >= total / 2) { split = k + 1; break; }
+    }
+    split = Math.max(1, Math.min(idxs.length - 1, split));
+    var a = idxs.slice(0, split), b = idxs.slice(split);
+    var wa = a.reduce(function (s, k) { return s + weights[k]; }, 0);
+    var frac = wa / total;
+    if (horiz) {
+      var w1 = w * frac;
+      partition(x, y, w1, h, a, weights, false, out);
+      partition(x + w1, y, w - w1, h, b, weights, false, out);
+    } else {
+      var h1 = h * frac;
+      partition(x, y, w, h1, a, weights, true, out);
+      partition(x, y + h1, w, h - h1, b, weights, true, out);
+    }
+  }
+
+  var arrangements = [], depth = [], phase = [];
+
+  // Mobile: recomposition over a clean grid of `cols` columns.
+  // Each of the 4 arrangements is a different shuffle of the pieces into the
+  // grid cells, so scrolling still morphs the layout (recomposition kept).
+  function buildGridArrangements(cols) {
+    var rows = Math.ceil(N / cols);
+    var base = Array.from({ length: N }, function (_, i) { return i; });
+    arrangements = [];
+    for (var s = 0; s < 4; s++) {
+      var rnd = rng(2000 + s * 613);
+      var order = shuffle(base, rnd);
+      var out = new Array(N);
+      for (var cell = 0; cell < N; cell++) {
+        var r = Math.floor(cell / cols), c = cell % cols;
+        out[order[cell]] = { x: c / cols, y: r / rows, w: 1 / cols, h: 1 / rows };
+      }
+      arrangements.push(out);
+    }
+    depth = base.map(function () { return 0; });
+    phase = base.map(function () { return 0; });
+  }
+
+  function buildArrangements() {
+    var cols = mobileCols();
+    if (cols > 0) { buildGridArrangements(cols); return; }
+    var base = Array.from({ length: N }, function (_, i) { return i; });
+    arrangements = [];
+    for (var s = 0; s < 4; s++) {
+      var rnd = rng(1000 + s * 977);
+      var weights = base.map(function () { return 1 + rnd() * 2.4; });
+      var order = shuffle(base, rnd);
+      var horiz = s % 2 === 0;
+      var out = new Array(N);
+      partition(0, 0, 1, 1, order, weights, horiz, out);
+      arrangements.push(out);
+    }
+    var r2 = rng(42);
+    depth = base.map(function () { return 0.25 + r2() * 0.85; });
+    phase = base.map(function () { return r2() * Math.PI * 2; });
+  }
+
+  // ---------------------------------------------------------------------------
+  // DOM: build tiles
+  // ---------------------------------------------------------------------------
+  var grid = document.getElementById("grid");
+  var tiles = [];
+
+  // Number of images per row on mobile (0 = desktop free mosaic).
+  function mobileCols() {
+    var w = window.innerWidth;
+    if (w > 640) return 0;
+    if (w <= 340) return 1;
+    if (w <= 480) return 2;
+    return 3;
+  }
+
+  function ghostSpan(txt) {
+    var g = document.createElement("div");
+    g.className = "ghost";
+    g.textContent = txt;
+    return g;
+  }
+
+  // Returns an <img> when the product has a photo, else a numbered placeholder.
+  function slotNode(a) {
+    if (a.img) {
+      var im = document.createElement("img");
+      im.src = a.img; im.alt = a.title; im.loading = "lazy";
+      im.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;";
+      // If the photo fails to load, fall back to the numbered placeholder.
+      im.onerror = function () {
+        if (im.parentNode) { im.parentNode.replaceChild(ghostSpan(a.numLabel), im); }
+      };
+      return im;
+    }
+    return ghostSpan(a.numLabel);
+  }
+
+  // Builds an <img> for a specific URL, falling back to the numbered placeholder.
+  function imgEl(url, alt, ghostLabel) {
+    if (url) {
+      var im = document.createElement("img");
+      im.src = url; im.alt = alt || ""; im.loading = "lazy";
+      im.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;";
+      im.onerror = function () { if (im.parentNode) im.parentNode.replaceChild(ghostSpan(ghostLabel), im); };
+      return im;
+    }
+    return ghostSpan(ghostLabel);
+  }
+
+  // Derives the thumbnail URL from a full image URL (name.webp -> name-thumb.webp).
+  function thumbUrl(u) { return u ? u.replace(/(\.[a-zA-Z0-9]+)(\?.*)?$/, "-thumb$1$2") : u; }
+
+  // Small image for tiles / cart : loads the thumbnail, falls back to the full
+  // image if the thumb is missing (e.g. seed images), then to the placeholder.
+  function smallImg(url, alt, ghostLabel) {
+    if (!url) return ghostSpan(ghostLabel);
+    var im = document.createElement("img");
+    im.alt = alt || ""; im.loading = "lazy";
+    im.style.cssText = "position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;";
+    var full = url, usedFull = (thumbUrl(url) === url);
+    im.onerror = function () {
+      if (!usedFull) { usedFull = true; im.src = full; }
+      else if (im.parentNode) { im.parentNode.replaceChild(ghostSpan(ghostLabel), im); }
+    };
+    im.src = thumbUrl(url);
+    return im;
+  }
+
+  function lbImages(a) { return (a.images && a.images.length) ? a.images : (a.img ? [a.img] : []); }
+  function carouselImage(a) {
+    var imgs = lbImages(a);
+    var url = imgs.length ? imgs[Math.min(state.lbImg || 0, imgs.length - 1)] : "";
+    var node = imgEl(url, a.title, a.numLabel);
+    if (url && node.tagName === "IMG") {
+      node.style.cursor = "zoom-in";
+      node.addEventListener("click", function (e) { e.stopPropagation(); openZoom(url); });
+    }
+    return node;
+  }
+
+  function openZoom(url) {
+    var z = el("div", "zoom-scrim");
+    var im = document.createElement("img");
+    im.className = "zoom-img"; im.src = url; im.alt = "";
+    z.appendChild(im);
+    z.addEventListener("click", function () { z.remove(); });
+    document.body.appendChild(z);
+  }
+
+  function inCartQty(i) { return state.cart[i] || 0; }
+  function isSoldOut(a) { return a.stock <= 0; }
+  function canAdd(a) { return a.stock > 0 && inCartQty(a.i) < a.stock; }
+
+  function buildTiles() {
+    grid.innerHTML = "";
+    tiles = [];
+    articles.forEach(function (a) {
+      var tile = document.createElement("div");
+      tile.className = "tile";
+      tile.style.background = tileBg(a.i);
+      tile.setAttribute("data-tile", "");
+
+      var ph = document.createElement("div");
+      ph.className = "ph";
+      ph.appendChild(smallImg(a.img, a.title, a.numLabel));
+      tile.appendChild(ph);
+
+      // add-to-cart quick button (hidden when sold out)
+      if (!isSoldOut(a)) {
+        var add = document.createElement("button");
+        add.className = "tile-add";
+        add.type = "button";
+        add.textContent = "+";
+        add.title = UI[state.lang].add;
+        add.addEventListener("click", function (e) { e.stopPropagation(); addToCart(a.i); });
+        tile.appendChild(add);
+      }
+
+      // multi-image badge
+      if (a.images && a.images.length > 1) {
+        var multi = document.createElement("div");
+        multi.className = "tile-multi";
+        multi.textContent = "▢ " + a.images.length;
+        tile.appendChild(multi);
+      }
+
+      // meta overlay
+      var ov = document.createElement("div");
+      ov.className = "metaov";
+      var num = document.createElement("div"); num.className = "num"; num.textContent = "N° " + a.numLabel;
+      var ttl = document.createElement("div"); ttl.className = "ttl"; ttl.textContent = a.title;
+      var row = document.createElement("div"); row.className = "row";
+      var cat = document.createElement("div"); cat.className = "cat"; cat.textContent = CAT_LABEL[state.lang][a.cat] || a.cat;
+      var price = document.createElement("div"); price.className = "price";
+      price.textContent = isSoldOut(a) ? UI[state.lang].soldout : money(a.price);
+      row.appendChild(cat); row.appendChild(price);
+      ov.appendChild(num); ov.appendChild(ttl); ov.appendChild(row);
+      tile.appendChild(ov);
+
+      tile.addEventListener("click", function () { openLb(a.i); });
+
+      grid.appendChild(tile);
+      tiles.push(tile);
+    });
+  }
+
+  function refreshTileTexts() {
+    // update meta + quick-add labels on lang change (keeps tiles/animation intact)
+    for (var i = 0; i < tiles.length; i++) {
+      var a = articles[i];
+      var t = tiles[i];
+      t.querySelector(".metaov .ttl").textContent = a.title;
+      t.querySelector(".metaov .cat").textContent = CAT_LABEL[state.lang][a.cat] || a.cat;
+      t.querySelector(".metaov .price").textContent = isSoldOut(a) ? UI[state.lang].soldout : money(a.price);
+      var addBtn = t.querySelector(".tile-add");
+      if (addBtn) addBtn.title = UI[state.lang].add;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Scroll-driven layout loop
+  // ---------------------------------------------------------------------------
+  var driver = document.getElementById("driver");
+  var lastKey = null, dirty = true;
+
+  function progress() {
+    if (!driver) return 0;
+    var r = driver.getBoundingClientRect();
+    var travel = driver.offsetHeight - window.innerHeight;
+    if (travel <= 0) return 0;
+    return Math.max(0, Math.min(1, -r.top / travel));
+  }
+  function smooth(t) { return t * t * (3 - 2 * t); }
+  function lerpRect(A, B, f) {
+    return { x: A.x + (B.x - A.x) * f, y: A.y + (B.y - A.y) * f, w: A.w + (B.w - A.w) * f, h: A.h + (B.h - A.h) * f };
+  }
+
+  function tick() {
+    requestAnimationFrame(tick);
+    if (!arrangements.length) return;
+    var W = grid.clientWidth, H = grid.clientHeight;
+    if (!W || !H) return;
+    var p = progress();
+    var eff = state.effect;
+    var gap = 2;
+    var AN = arrangements.length;
+
+    if (eff === "crossfade") {
+      for (var b = 0; b < tiles.length; b++) {
+        var slotb = tiles[b].querySelector("[data-slotb]");
+        if (slotb) {
+          var o = 0.5 + 0.5 * Math.sin(p * Math.PI * 2 * 2.5 + phase[b]);
+          slotb.style.opacity = o.toFixed(3);
+        }
+      }
+    }
+
+    var key = eff + ":" + gap + ":" + W + "x" + H + ":" + p.toFixed(4);
+    if (key === lastKey && !dirty) return;
+    lastKey = key; dirty = false;
+
+    for (var i = 0; i < tiles.length; i++) {
+      var el = tiles[i];
+      var rect, tx = 0, ty = 0, sc = 1;
+      if (eff === "recompose") {
+        var t = p * (AN - 1);
+        var idx = Math.floor(t);
+        if (idx >= AN - 1) idx = AN - 2;
+        var f = smooth(t - idx);
+        rect = lerpRect(arrangements[idx][i], arrangements[idx + 1][i], f);
+      } else if (eff === "parallax") {
+        rect = arrangements[0][i];
+        var d = depth[i];
+        ty = (p - 0.5) * H * 0.55 * d;
+        sc = 1 + (p * 0.12 * d);
+      } else {
+        rect = arrangements[0][i];
+      }
+      var x = rect.x * W + gap / 2;
+      var y = rect.y * H + gap / 2;
+      var w = Math.max(2, rect.w * W - gap);
+      var h = Math.max(2, rect.h * H - gap);
+      el.style.left = x + "px";
+      el.style.top = y + "px";
+      el.style.width = w + "px";
+      el.style.height = h + "px";
+      el.style.transform = (tx || ty || sc !== 1) ? ("translate(" + tx + "px," + ty + "px) scale(" + sc + ")") : "";
+      var fs = Math.max(9, Math.min(17, h * 0.052));
+      el.style.setProperty("--fs", fs + "px");
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Cart logic
+  // ---------------------------------------------------------------------------
+  function cartCount() {
+    var c = 0;
+    for (var k in state.cart) c += state.cart[k];
+    return c;
+  }
+  function cartTotal() {
+    var t = 0;
+    for (var k in state.cart) t += (articles[k].price * state.cart[k]);
+    return t;
+  }
+  function addToCart(i) {
+    var a = articles[i];
+    if (!canAdd(a)) {
+      showToast((isSoldOut(a) ? UI[state.lang].soldout : UI[state.lang].inCart) + " — " + a.title);
+      return;
+    }
+    state.cart[i] = (state.cart[i] || 0) + 1;
+    persist();
+    updateCartCount();
+    if (state.cartOpen) renderCart();
+    showToast(UI[state.lang].added + " — " + a.title);
+  }
+  function setQty(i, q) {
+    var max = articles[i].stock;
+    if (q > max) q = max;
+    if (q <= 0) delete state.cart[i];
+    else state.cart[i] = q;
+    persist();
+    updateCartCount();
+    renderCart();
+  }
+  function updateCartCount() {
+    document.getElementById("cartCount").textContent = cartCount();
+  }
+
+  var toastTimer = null;
+  function showToast(msg) {
+    var host = document.getElementById("toasts");
+    host.innerHTML = "";
+    var t = document.createElement("div");
+    t.className = "toast";
+    t.textContent = msg;
+    host.appendChild(t);
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { host.innerHTML = ""; }, 2200);
+  }
+
+  // ---------------------------------------------------------------------------
+  // Rendering: header/footer text, lightbox, cart
+  // ---------------------------------------------------------------------------
+  var modals = document.getElementById("modals");
+
+  function renderChrome() {
+    var ui = UI[state.lang];
+    document.documentElement.lang = state.lang;
+    document.getElementById("tagline").textContent = ui.tagline;
+    document.getElementById("langLabel").textContent = ui.other;
+    document.getElementById("cartWord").textContent = ui.cart;
+    document.getElementById("countLabel").textContent = ui.count;
+    document.getElementById("scrollLabel").textContent = ui.scroll;
+    document.getElementById("footTitle").innerHTML = ui.footTitle;
+    document.getElementById("aboutText").innerHTML = ui.about;
+    document.getElementById("listenTitle").textContent = ui.listen;
+    document.getElementById("listenSub").textContent = ui.listenSub;
+    updateCartCount();
+  }
+
+  function openLb(i) {
+    state.lb = i;
+    state.lbImg = 0;
+    document.body.style.overflow = "hidden";
+    renderModals();
+  }
+
+  // Show a specific carousel image and sync image / dots / thumbs / counter.
+  function lbSetImg(idx) {
+    if (state.lb == null) return;
+    var a = articles[state.lb];
+    var imgs = lbImages(a);
+    if (!imgs.length) return;
+    state.lbImg = ((idx % imgs.length) + imgs.length) % imgs.length;
+    var scrim = modals.querySelector(".lb-scrim");
+    if (!scrim) return;
+    var box = scrim.querySelector(".lb-img");
+    if (box) {
+      var oldImg = box.querySelector("img, .ghost");
+      if (oldImg) oldImg.remove();
+      box.insertBefore(carouselImage(a), box.firstChild);
+    }
+    scrim.querySelectorAll(".lb-dot").forEach(function (d, k) { d.classList.toggle("on", k === state.lbImg); });
+    scrim.querySelectorAll(".lb-thumb").forEach(function (t, k) { t.classList.toggle("on", k === state.lbImg); });
+    var cnt = scrim.querySelector(".lb-count");
+    if (cnt) cnt.textContent = (state.lbImg + 1) + " / " + imgs.length;
+  }
+  function lbGo(delta) {
+    if (state.lb == null) return;
+    if (lbImages(articles[state.lb]).length < 2) return;
+    lbSetImg((state.lbImg || 0) + delta);
+  }
+  function closeLb() {
+    state.lb = null;
+    if (!state.cartOpen) document.body.style.overflow = "";
+    renderModals();
+  }
+  function openCart() {
+    state.cartOpen = true;
+    state.checkout = false;
+    document.body.style.overflow = "hidden";
+    renderModals();
+  }
+  function closeCart() {
+    state.cartOpen = false;
+    if (state.lb == null) document.body.style.overflow = "";
+    renderModals();
+  }
+
+  function renderModals() {
+    modals.innerHTML = "";
+    if (state.lb != null) modals.appendChild(buildLightbox(articles[state.lb]));
+    if (state.cartOpen) modals.appendChild(buildCartLayer());
+  }
+
+  function buildLightbox(a) {
+    var ui = UI[state.lang];
+    var scrim = el("div", "lb-scrim");
+    scrim.addEventListener("click", closeLb);
+    var card = el("div", "lb-card");
+    card.addEventListener("click", function (e) { e.stopPropagation(); });
+
+    var imgs = lbImages(a);
+    var img = el("div", "lb-img");
+    img.style.background = tileBg(a.i);
+    img.appendChild(carouselImage(a));
+    if (imgs.length > 1) {
+      var prev = txt("button", "lb-nav prev", "‹"); prev.type = "button";
+      prev.addEventListener("click", function (e) { e.stopPropagation(); lbGo(-1); });
+      var next = txt("button", "lb-nav next", "›"); next.type = "button";
+      next.addEventListener("click", function (e) { e.stopPropagation(); lbGo(1); });
+      var count = txt("div", "lb-count", (state.lbImg + 1) + " / " + imgs.length);
+      img.appendChild(prev); img.appendChild(next); img.appendChild(count);
+      var dots = el("div", "lb-dots");
+      imgs.forEach(function (_, k) {
+        var d = el("span", "lb-dot" + (k === state.lbImg ? " on" : ""));
+        d.addEventListener("click", function (e) { e.stopPropagation(); lbSetImg(k); });
+        dots.appendChild(d);
+      });
+      img.appendChild(dots);
+    }
+    card.appendChild(img);
+
+    if (imgs.length > 1) {
+      var thumbs = el("div", "lb-thumbs");
+      imgs.forEach(function (src, k) {
+        var th = el("div", "lb-thumb" + (k === state.lbImg ? " on" : ""));
+        var ti = document.createElement("img"); ti.alt = ""; ti.loading = "lazy";
+        (function (full) { ti.onerror = function () { ti.onerror = null; ti.src = full; }; }(src));
+        ti.src = thumbUrl(src);
+        th.appendChild(ti);
+        th.addEventListener("click", function (e) { e.stopPropagation(); lbSetImg(k); });
+        thumbs.appendChild(th);
+      });
+      card.appendChild(thumbs);
+    }
+
+    var body = el("div", "lb-body");
+    var top = el("div", "lb-top");
+    top.appendChild(txt("span", "lb-cat", CAT_LABEL[state.lang][a.cat] || a.cat));
+    top.appendChild(txt("span", "lb-num", "N° " + a.numLabel + " · " + ui.unique));
+    body.appendChild(top);
+    body.appendChild(txt("h2", "lb-title", a.title));
+    body.appendChild(txt("p", "lb-desc", a.desc));
+
+    // spec line: colour · size · ref
+    var specs = [];
+    if (a.color) specs.push(ui.color + " " + a.color);
+    if (a.size) specs.push(ui.size + " " + a.size);
+    if (a.ref) specs.push(ui.ref + " " + a.ref);
+    if (specs.length) {
+      var spec = txt("div", "lb-spec", specs.join("  ·  "));
+      spec.style.cssText = "font-size:11px;letter-spacing:0.06em;opacity:0.6;margin-top:6px;";
+      body.appendChild(spec);
+    }
+
+    var buy = el("div", "lb-buy");
+    buy.appendChild(txt("span", "lb-price", isSoldOut(a) ? ui.soldout : money(a.price)));
+    if (!isSoldOut(a)) {
+      var addBtn = txt("button", "btn-primary", ui.add);
+      addBtn.type = "button";
+      addBtn.disabled = !canAdd(a);
+      if (!canAdd(a)) { addBtn.textContent = ui.inCart; addBtn.style.opacity = "0.45"; addBtn.style.cursor = "default"; }
+      addBtn.addEventListener("click", function () { if (canAdd(a)) { addToCart(a.i); openCart(); } });
+      buy.appendChild(addBtn);
+    }
+    var closeBtn = txt("button", "btn-ghost", ui.close);
+    closeBtn.type = "button";
+    closeBtn.addEventListener("click", closeLb);
+    buy.appendChild(closeBtn);
+    body.appendChild(buy);
+
+    card.appendChild(body);
+    scrim.appendChild(card);
+    return scrim;
+  }
+
+  function buildCartLayer() {
+    var frag = document.createDocumentFragment();
+    var scrim = el("div", "cart-scrim");
+    scrim.addEventListener("click", closeCart);
+    frag.appendChild(scrim);
+
+    var drawer = el("div", "cart");
+    drawer.appendChild(buildCartInner());
+    frag.appendChild(drawer);
+
+    var wrap = el("div", "");
+    wrap.appendChild(frag);
+    return wrap;
+  }
+
+  function buildCartInner() {
+    var ui = UI[state.lang];
+    var box = el("div", "");
+    box.style.display = "flex";
+    box.style.flexDirection = "column";
+    box.style.height = "100%";
+
+    var head = el("div", "cart-head");
+    head.appendChild(txt("h2", "", state.checkout ? ui.confirmTitle : (ui.cart + " (" + cartCount() + ")")));
+    var x = txt("button", "cart-close", "✕");
+    x.type = "button";
+    x.addEventListener("click", closeCart);
+    head.appendChild(x);
+    box.appendChild(head);
+
+    if (state.checkout) {
+      box.appendChild(buildConfirm());
+      return box;
+    }
+
+    var items = el("div", "cart-items");
+    var keys = Object.keys(state.cart);
+    if (!keys.length) {
+      var empty = el("div", "cart-empty");
+      empty.innerHTML = ui.empty;
+      items.appendChild(empty);
+    } else {
+      keys.forEach(function (k) {
+        items.appendChild(buildCartItem(articles[k], state.cart[k]));
+      });
+    }
+    box.appendChild(items);
+
+    // footer with totals
+    var foot = el("div", "cart-foot");
+    var sub = cartTotal();
+    var subLine = el("div", "cart-line");
+    subLine.appendChild(txt("span", "", ui.subtotal));
+    subLine.appendChild(txt("span", "", money(sub)));
+    foot.appendChild(subLine);
+    var shipLine = el("div", "cart-line");
+    shipLine.appendChild(txt("span", "", ui.shipping));
+    shipLine.appendChild(txt("span", "", ui.free));
+    foot.appendChild(shipLine);
+    var totalLine = el("div", "cart-total");
+    totalLine.appendChild(txt("span", "lbl", ui.total));
+    totalLine.appendChild(txt("span", "val", money(sub)));
+    foot.appendChild(totalLine);
+
+    var co = txt("button", "btn-primary checkout-btn", ui.checkout);
+    co.type = "button";
+    co.disabled = !keys.length;
+    if (!keys.length) co.style.opacity = "0.4";
+    co.addEventListener("click", doCheckout);
+    foot.appendChild(co);
+    box.appendChild(foot);
+
+    return box;
+  }
+
+  function buildCartItem(a, qty) {
+    var ui = UI[state.lang];
+    var row = el("div", "ci");
+    var thumb = el("div", "ci-thumb");
+    thumb.style.background = tileBg(a.i);
+    thumb.appendChild(smallImg(a.img, a.title, a.numLabel));
+    row.appendChild(thumb);
+
+    var main = el("div", "ci-main");
+    main.appendChild(txt("div", "ci-title", a.title));
+    main.appendChild(txt("div", "ci-cat", (CAT_LABEL[state.lang][a.cat] || a.cat) + " · " + money(a.price)));
+
+    var bottom = el("div", "ci-bottom");
+    var q = el("div", "qty");
+    var minus = txt("button", "", "−"); minus.type = "button";
+    minus.addEventListener("click", function () { setQty(a.i, qty - 1); });
+    var span = txt("span", "", String(qty));
+    var plus = txt("button", "", "+"); plus.type = "button";
+    if (qty >= a.stock) { plus.disabled = true; plus.style.opacity = "0.3"; plus.style.cursor = "default"; }
+    plus.addEventListener("click", function () { setQty(a.i, qty + 1); });
+    q.appendChild(minus); q.appendChild(span); q.appendChild(plus);
+    bottom.appendChild(q);
+    bottom.appendChild(txt("span", "ci-price", money(a.price * qty)));
+    main.appendChild(bottom);
+
+    var rm = txt("button", "ci-remove", ui.remove);
+    rm.type = "button";
+    rm.addEventListener("click", function () { setQty(a.i, 0); });
+    main.appendChild(rm);
+
+    row.appendChild(main);
+    return row;
+  }
+
+  function buildConfirm() {
+    var ui = UI[state.lang];
+    var wrap = el("div", "cart-items");
+    var c = el("div", "confirm");
+    c.appendChild(txt("div", "tick", "✓"));
+    c.appendChild(txt("h3", "", ui.confirmTitle));
+    c.appendChild(txt("p", "", ui.confirmMsg));
+    c.appendChild(txt("div", "order", ui.order + " " + state.orderNo));
+    var cont = txt("button", "btn-primary", ui.continue);
+    cont.type = "button";
+    cont.style.marginTop = "22px";
+    cont.addEventListener("click", closeCart);
+    c.appendChild(cont);
+    wrap.appendChild(c);
+    return wrap;
+  }
+
+  function doCheckout() {
+    var keys = Object.keys(state.cart);
+    if (!keys.length) return;
+    // Real payment via the backend (Stripe Checkout hosted page).
+    if (typeof fetch === "function" && API_BASE) {
+      var items = keys.map(function (k) { return { id: articles[k].id, qty: state.cart[k] }; });
+      var btn = document.querySelector(".checkout-btn");
+      if (btn) { btn.disabled = true; btn.textContent = "…"; }
+      fetch(API_BASE + "api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(items)
+      }).then(function (r) {
+        if (r.ok) return r.json();
+        return r.json().catch(function () { return {}; }).then(function (e) { throw new Error(e.detail || "Erreur paiement"); });
+      }).then(function (d) {
+        if (d && d.url) { window.location.href = d.url; }
+        else { throw new Error("Réponse invalide"); }
+      }).catch(function (e) {
+        showToast((state.lang === "fr" ? "Paiement indisponible — " : "Payment unavailable — ") + e.message);
+        if (btn) { btn.disabled = false; btn.textContent = UI[state.lang].checkout; }
+      });
+      return;
+    }
+    // Fallback démo (sans backend) : confirmation simulée.
+    state.orderNo = "ABC-" + Date.now().toString(36).toUpperCase().slice(-6);
+    state.cart = {};
+    state.checkout = true;
+    persist();
+    updateCartCount();
+    renderCart();
+  }
+
+  function renderCart() {
+    if (!state.cartOpen) return;
+    var drawer = modals.querySelector(".cart");
+    if (drawer) {
+      drawer.innerHTML = "";
+      drawer.appendChild(buildCartInner());
+    }
+  }
+
+  // small DOM helpers
+  function el(tag, cls) { var e = document.createElement(tag); if (cls) e.className = cls; return e; }
+  function txt(tag, cls, text) { var e = el(tag, cls); if (text != null) e.textContent = text; return e; }
+
+  // ---------------------------------------------------------------------------
+  // Wiring
+  // ---------------------------------------------------------------------------
+  function toggleLang() {
+    state.lang = state.lang === "fr" ? "en" : "fr";
+    articles = articlesFor(state.lang);
+    persist();
+    renderChrome();
+    refreshTileTexts();
+    renderModals();
+  }
+
+  document.getElementById("langBtn").addEventListener("click", toggleLang);
+  document.getElementById("cartBtn").addEventListener("click", openCart);
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape") {
+      var z = document.querySelector(".zoom-scrim");
+      if (z) { z.remove(); return; }
+      if (state.lb != null) closeLb();
+      else if (state.cartOpen) closeCart();
+    } else if (state.lb != null && e.key === "ArrowLeft") {
+      lbGo(-1);
+    } else if (state.lb != null && e.key === "ArrowRight") {
+      lbGo(1);
+    }
+  });
+  var lastCols = mobileCols();
+  window.addEventListener("resize", function () {
+    var c = mobileCols();
+    if (c !== lastCols) { lastCols = c; buildArrangements(); }
+    dirty = true; lastKey = null;
+  });
+
+  // Replace the embedded catalogue with live data from the backend.
+  function applyCatalog(list) {
+    CATALOG.length = 0;
+    list.forEach(function (p) {
+      CATALOG.push({
+        id: String(p.id), name: p.name, cat: p.cat, price: Number(p.price) || 0,
+        color: p.color || "", size: p.size || "", ref: p.ref || "",
+        qty: Number(p.qty) || 0, img: p.img || "",
+        images: Array.isArray(p.images) ? p.images : [],
+        descFr: p.descFr || "", descEn: p.descEn || "",
+      });
+    });
+    N = CATALOG.length;
+    articles = articlesFor(state.lang);
+    buildArrangements();
+    buildTiles();
+    dirty = true; lastKey = null;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Boot — embedded catalogue (from 20241108-product_import.csv),
+  // then upgraded to live API data when served by the backend.
+  // ---------------------------------------------------------------------------
+  buildArrangements();
+  buildTiles();
+  renderChrome();
+  requestAnimationFrame(tick);
+
+  // Live catalogue source. On Vercel, set window.ABC_API_BASE to your Railway
+  // URL (e.g. "https://abc-api.up.railway.app/") so the shop loads live data.
+  var API_BASE = (typeof window !== "undefined" && window.ABC_API_BASE) ? String(window.ABC_API_BASE) : "";
+  if (API_BASE && API_BASE.slice(-1) !== "/") API_BASE += "/";
+  if (typeof fetch === "function" && (API_BASE || location.protocol === "http:" || location.protocol === "https:")) {
+    fetch(API_BASE + "api/products")
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (list) { if (list && list.length) { applyCatalog(list); renderChrome(); } })
+      .catch(function () { /* offline / file:// — keep embedded catalogue */ });
+  }
+
+  // Retour depuis Stripe : ?paid=<session> (succès) ou ?canceled=1 (abandon).
+  try {
+    var qp = new URLSearchParams(location.search);
+    if (qp.get("paid")) {
+      state.cart = {}; persist(); updateCartCount();
+      state.orderNo = "ABC-" + String(qp.get("paid")).replace(/^cs_(test_|live_)?/, "").slice(0, 8).toUpperCase();
+      state.checkout = true;
+      openCart();
+      history.replaceState({}, "", location.pathname);
+    } else if (qp.get("canceled")) {
+      showToast(state.lang === "fr" ? "Paiement annulé" : "Payment canceled");
+      history.replaceState({}, "", location.pathname);
+    }
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
