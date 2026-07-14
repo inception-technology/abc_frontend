@@ -174,13 +174,7 @@
   .lb-thumb:hover { opacity: 1; }
   .zoom-scrim { position: fixed; inset: 0; z-index: 80; background: rgba(10,9,8,0.95); display: flex; align-items: center; justify-content: center; padding: 3vh 3vw; cursor: zoom-out; animation: lbIn 0.18s ease both; }
   .zoom-img { max-width: 96vw; max-height: 94vh; object-fit: contain; display: block; }
-  .tile-multi {
-    position: absolute; top: calc(var(--fs) * 0.7); left: calc(var(--fs) * 0.7); z-index: 6;
-    display: inline-flex; align-items: center; gap: 3px; pointer-events: none;
-    background: rgba(15,14,13,0.6); color: #fff; border-radius: 20px;
-    font-size: calc(var(--fs) * 0.66); letter-spacing: 0.04em; padding: calc(var(--fs) * 0.22) calc(var(--fs) * 0.55);
-    font-variant-numeric: tabular-nums;
-  }
+  .price.sold, .lb-price.sold { color: oklch(0.64 0.21 25); }
   .lb-body { padding: 22px 26px 26px; display: flex; flex-direction: column; gap: 10px; overflow: auto; }
   .lb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
   .lb-cat { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: oklch(0.55 0.11 40); }
@@ -682,14 +676,6 @@
         tile.appendChild(add);
       }
 
-      // multi-image badge
-      if (a.images && a.images.length > 1) {
-        var multi = document.createElement("div");
-        multi.className = "tile-multi";
-        multi.textContent = "▢ " + a.images.length;
-        tile.appendChild(multi);
-      }
-
       // meta overlay
       var ov = document.createElement("div");
       ov.className = "metaov";
@@ -699,6 +685,7 @@
       var cat = document.createElement("div"); cat.className = "cat"; cat.textContent = CAT_LABEL[state.lang][a.cat] || a.cat;
       var price = document.createElement("div"); price.className = "price";
       price.textContent = isSoldOut(a) ? UI[state.lang].soldout : money(a.price);
+      if (isSoldOut(a)) price.classList.add("sold");
       row.appendChild(cat); row.appendChild(price);
       ov.appendChild(num); ov.appendChild(ttl); ov.appendChild(row);
       tile.appendChild(ov);
@@ -717,7 +704,9 @@
       var t = tiles[i];
       t.querySelector(".metaov .ttl").textContent = a.title;
       t.querySelector(".metaov .cat").textContent = CAT_LABEL[state.lang][a.cat] || a.cat;
-      t.querySelector(".metaov .price").textContent = isSoldOut(a) ? UI[state.lang].soldout : money(a.price);
+      var pEl = t.querySelector(".metaov .price");
+      pEl.textContent = isSoldOut(a) ? UI[state.lang].soldout : money(a.price);
+      pEl.classList.toggle("sold", isSoldOut(a));
       var addBtn = t.querySelector(".tile-add");
       if (addBtn) addBtn.title = UI[state.lang].add;
     }
@@ -983,7 +972,9 @@
     }
 
     var buy = el("div", "lb-buy");
-    buy.appendChild(txt("span", "lb-price", isSoldOut(a) ? ui.soldout : money(a.price)));
+    var lbPrice = txt("span", "lb-price", isSoldOut(a) ? ui.soldout : money(a.price));
+    if (isSoldOut(a)) lbPrice.classList.add("sold");
+    buy.appendChild(lbPrice);
     if (!isSoldOut(a)) {
       var addBtn = txt("button", "btn-primary", ui.add);
       addBtn.type = "button";
