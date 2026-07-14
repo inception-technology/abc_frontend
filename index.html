@@ -262,6 +262,9 @@
   .socials a { display: inline-flex; width: 40px; height: 40px; border-radius: 50%; align-items: center; justify-content: center; color: oklch(0.86 0.006 70); border: 1px solid oklch(0.86 0.006 70 / 0.22); transition: color .15s, background .15s, border-color .15s; }
   .socials a:hover { color: #111; background: #fff; border-color: #fff; }
   .socials svg { width: 19px; height: 19px; display: block; }
+  .foot-links { margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; font-size: 11px; letter-spacing: 0.06em; }
+  .foot-links a { color: oklch(0.86 0.006 70 / 0.75); text-decoration: none; }
+  .foot-links a:hover { color: #fff; text-decoration: underline; }
 
   /* listen / SoundCloud */
   .listen { position: relative; z-index: 1; background: oklch(0.24 0.012 60); color: oklch(0.9 0.006 70); padding: 56px 26px; }
@@ -330,6 +333,11 @@
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 14.2v2.8h.9v-2.8H2zm1.8-1.3V17h.9v-4.1h-.9zm1.8-.8V17h.9v-4.9h-.9zm1.8-.7V17h.9V11.4h-.9zm1.9.7V17h.9v-6.2h-.9zm2.6-3.2c-.5 0-1 .1-1.5.3V17h7.1a2.55 2.55 0 0 0 .1-5.1c-.25 0-.5.04-.73.1A4.02 4.02 0 0 0 12.7 8.9z"/></svg>
       </a>
     </div>
+    <nav class="foot-links" aria-label="Informations légales">
+      <a href="/cgv.html">CGV</a>
+      <a href="/confidentialite.html">Politique de confidentialité</a>
+      <a href="/conditions.html">Conditions d'utilisation</a>
+    </nav>
     <div class="foot-contact">
       <a href="mailto:contact@artbeyondconvenience.fr">contact@artbeyondconvenience.fr</a>
       <div class="foot-legal">ABC by Split - all right reserved - 2026</div>
