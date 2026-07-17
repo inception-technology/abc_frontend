@@ -453,7 +453,11 @@
     lb: null,          // lightbox index
     cartOpen: false,
     checkout: false,   // showing confirmation
-    cart: {},          // { index: qty }
+    // Panier persisté par ID PRODUIT (clé = String(id)), jamais par index :
+    // l'ordre du catalogue change (tri admin, suppression) alors qu'un panier
+    // sauvegardé peut avoir des jours d'avance. Un index périmé ferait payer
+    // la mauvaise pièce. Les entrées orphelines sont purgées par pruneCart().
+    cart: {},          // { productId: qty }
     orderNo: null,
     gridMsg: "loading", // état de la mosaïque : "loading" | "error" | null
     // Le stock est-il confirmé par l'API ? Faux tant qu'elle n'a pas répondu :
@@ -462,17 +466,19 @@
   };
 
   // persistence (safe on file:// via try/catch)
+  // ⚠ CLÉS PARTAGÉES avec success.html (qui vide abc_cart après paiement) et
+  // cancel.html (qui lit abc_lang) : ne pas renommer isolément.
   try {
-    var saved = localStorage.getItem("patchwork_cart");
+    var saved = localStorage.getItem("abc_cart");
     if (saved) state.cart = JSON.parse(saved) || {};
-    var savedLang = localStorage.getItem("patchwork_lang");
+    var savedLang = localStorage.getItem("abc_lang");
     if (savedLang === "en" || savedLang === "fr") state.lang = savedLang;
   } catch (e) {}
 
   function persist() {
     try {
-      localStorage.setItem("patchwork_cart", JSON.stringify(state.cart));
-      localStorage.setItem("patchwork_lang", state.lang);
+      localStorage.setItem("abc_cart", JSON.stringify(state.cart));
+      localStorage.setItem("abc_lang", state.lang);
     } catch (e) {}
   }
 
@@ -498,6 +504,29 @@
     });
   }
   var articles = articlesFor(state.lang);
+  var articlesById = indexById(articles);
+
+  function indexById(list) {
+    var m = {};
+    list.forEach(function (a) { m[a.id] = a; });
+    return m;
+  }
+
+  // Purge les entrées de panier orphelines : pièce disparue du catalogue,
+  // épuisée, ou quantité excessive. UNIQUEMENT une fois le stock confirmé par
+  // l'API : avant, le catalogue peut être vide (snapshot absent, cold start)
+  // et purger sur cette base détruirait un panier valide. Un panier persisté
+  // peut avoir des jours d'avance sur le catalogue.
+  function pruneCart() {
+    if (!state.stockTrusted) return;
+    var changed = false;
+    for (var k in state.cart) {
+      var a = articlesById[k];
+      if (!a || a.stock <= 0) { delete state.cart[k]; changed = true; }
+      else if (state.cart[k] > a.stock) { state.cart[k] = a.stock; changed = true; }
+    }
+    if (changed) persist();
+  }
 
   function money(v) {
     return state.lang === "fr" ? (v + " €") : ("€" + v);
@@ -701,7 +730,7 @@
     document.body.appendChild(z);
   }
 
-  function inCartQty(i) { return state.cart[i] || 0; }
+  function inCartQty(id) { return state.cart[id] || 0; }
   function isSoldOut(a) { return a.stock <= 0; }
 
   // Point de passage UNIQUE de la mise au panier.
@@ -710,7 +739,7 @@
   // remettre en vente une pièce unique déjà partie — paiement encaissé, rien à
   // expédier. C'est le risque n°1 du projet : la garde est ici.
   function canAdd(a) {
-    return state.stockTrusted && a.stock > 0 && inCartQty(a.i) < a.stock;
+    return state.stockTrusted && a.stock > 0 && inCartQty(a.id) < a.stock;
   }
 
   function buildTiles() {
@@ -737,7 +766,7 @@
         // Stock non confirmé par l'API : bouton inerte. buildTiles() est rejoué
         // dès que l'API répond, ce qui le réactive.
         add.disabled = !state.stockTrusted;
-        add.addEventListener("click", function (e) { e.stopPropagation(); addToCart(a.i); });
+        add.addEventListener("click", function (e) { e.stopPropagation(); addToCart(a.id); });
         tile.appendChild(add);
       }
 
@@ -860,7 +889,10 @@
   }
   function cartTotal() {
     var t = 0;
-    for (var k in state.cart) t += (articles[k].price * state.cart[k]);
+    for (var k in state.cart) {
+      var a = articlesById[k];
+      if (a) t += a.price * state.cart[k];
+    }
     return t;
   }
   // Pourquoi l'ajout est refusé. Distinguer les cas : dire « Déjà dans le
@@ -870,23 +902,25 @@
     return isSoldOut(a) ? UI[state.lang].soldout : UI[state.lang].inCart;
   }
 
-  function addToCart(i) {
-    var a = articles[i];
+  function addToCart(id) {
+    var a = articlesById[id];
+    if (!a) return;
     if (!canAdd(a)) {
       showToast(addBlockedReason(a) + " — " + a.title);
       return;
     }
-    state.cart[i] = (state.cart[i] || 0) + 1;
+    state.cart[id] = (state.cart[id] || 0) + 1;
     persist();
     updateCartCount();
     if (state.cartOpen) renderCart();
     showToast(UI[state.lang].added + " — " + a.title);
   }
-  function setQty(i, q) {
-    var max = articles[i].stock;
+  function setQty(id, q) {
+    var a = articlesById[id];
+    var max = a ? a.stock : 0;
     if (q > max) q = max;
-    if (q <= 0) delete state.cart[i];
-    else state.cart[i] = q;
+    if (q <= 0) delete state.cart[id];
+    else state.cart[id] = q;
     persist();
     updateCartCount();
     renderCart();
@@ -1059,7 +1093,7 @@
       addBtn.type = "button";
       addBtn.disabled = !canAdd(a);
       if (!canAdd(a)) { addBtn.textContent = ui.inCart; addBtn.style.opacity = "0.45"; addBtn.style.cursor = "default"; }
-      addBtn.addEventListener("click", function () { if (canAdd(a)) { addToCart(a.i); openCart(); } });
+      addBtn.addEventListener("click", function () { if (canAdd(a)) { addToCart(a.id); openCart(); } });
       buy.appendChild(addBtn);
     }
     var closeBtn = txt("button", "btn-ghost", ui.close);
@@ -1116,7 +1150,8 @@
       items.appendChild(empty);
     } else {
       keys.forEach(function (k) {
-        items.appendChild(buildCartItem(articles[k], state.cart[k]));
+        var a = articlesById[k];
+        if (a) items.appendChild(buildCartItem(a, state.cart[k]));
       });
     }
     box.appendChild(items);
@@ -1163,11 +1198,11 @@
     var bottom = el("div", "ci-bottom");
     var q = el("div", "qty");
     var minus = txt("button", "", "−"); minus.type = "button";
-    minus.addEventListener("click", function () { setQty(a.i, qty - 1); });
+    minus.addEventListener("click", function () { setQty(a.id, qty - 1); });
     var span = txt("span", "", String(qty));
     var plus = txt("button", "", "+"); plus.type = "button";
     if (qty >= a.stock) { plus.disabled = true; plus.style.opacity = "0.3"; plus.style.cursor = "default"; }
-    plus.addEventListener("click", function () { setQty(a.i, qty + 1); });
+    plus.addEventListener("click", function () { setQty(a.id, qty + 1); });
     q.appendChild(minus); q.appendChild(span); q.appendChild(plus);
     bottom.appendChild(q);
     bottom.appendChild(txt("span", "ci-price", money(a.price * qty)));
@@ -1175,7 +1210,7 @@
 
     var rm = txt("button", "ci-remove", ui.remove);
     rm.type = "button";
-    rm.addEventListener("click", function () { setQty(a.i, 0); });
+    rm.addEventListener("click", function () { setQty(a.id, 0); });
     main.appendChild(rm);
 
     row.appendChild(main);
@@ -1204,7 +1239,9 @@
     if (!keys.length) return;
     // Real payment via the backend (Stripe Checkout hosted page).
     if (typeof fetch === "function" && API_BASE) {
-      var items = keys.map(function (k) { return { id: articles[k].id, qty: state.cart[k] }; });
+      // La clé du panier EST l'id produit ; on ignore toute entrée orpheline.
+      var items = keys.filter(function (k) { return articlesById[k]; })
+        .map(function (k) { return { id: Number(k), qty: state.cart[k] }; });
       var btn = document.querySelector(".checkout-btn");
       if (btn) { btn.disabled = true; btn.textContent = "…"; }
       fetch(API_BASE + "api/checkout", {
@@ -1251,6 +1288,7 @@
   function toggleLang() {
     state.lang = state.lang === "fr" ? "en" : "fr";
     articles = articlesFor(state.lang);
+    articlesById = indexById(articles);
     persist();
     renderChrome();
     refreshTileTexts();
@@ -1292,6 +1330,9 @@
     });
     N = CATALOG.length;
     articles = articlesFor(state.lang);
+    articlesById = indexById(articles);
+    pruneCart();
+    updateCartCount();
     buildArrangements();
     buildTiles();
     dirty = true; lastKey = null;
@@ -1362,20 +1403,8 @@
     onCatalogFailure(); // file:// — pas d'API joignable
   }
 
-  // Retour depuis Stripe : ?paid=<session> (succès) ou ?canceled=1 (abandon).
-  try {
-    var qp = new URLSearchParams(location.search);
-    if (qp.get("paid")) {
-      state.cart = {}; persist(); updateCartCount();
-      state.orderNo = "ABC-" + String(qp.get("paid")).replace(/^cs_(test_|live_)?/, "").slice(0, 8).toUpperCase();
-      state.checkout = true;
-      openCart();
-      history.replaceState({}, "", location.pathname);
-    } else if (qp.get("canceled")) {
-      showToast(state.lang === "fr" ? "Paiement annulé" : "Payment canceled");
-      history.replaceState({}, "", location.pathname);
-    }
-  } catch (e) {}
+  // Retour depuis Stripe : géré par les pages dédiées success.html (qui vide
+  // abc_cart) et cancel.html — success_url/cancel_url pointent dessus.
 })();
 </script>
 </body>
