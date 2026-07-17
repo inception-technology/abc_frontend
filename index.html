@@ -16,10 +16,17 @@
 <!-- Vercel Web Analytics + Speed Insights (site statique) -->
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@500;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
+  /* Polices auto-hébergées (RGPD : aucune requête vers Google Fonts —
+     charger depuis fonts.googleapis.com transmettait l'IP de chaque
+     visiteur à Google sans consentement). Fichiers : /fonts/. */
+  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/syne-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/syne-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/syne-latin-700-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fonts/syne-latin-800-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/space-mono-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/space-mono-latin-700-normal.woff2') format('woff2'); }
+
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
@@ -296,6 +303,12 @@
   .listen-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(24px, 5vw, 36px); letter-spacing: 0.01em; line-height: 1; }
   .listen-sub { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.6; margin-top: 8px; }
   .sc-player { width: 100%; height: 400px; border: 0; margin-top: 22px; border-radius: 8px; display: block; }
+  /* Façade RGPD : le lecteur SoundCloud n'est chargé qu'au clic. */
+  .sc-facade { display: grid; place-items: center; text-align: center; cursor: pointer; background: oklch(0.2 0.012 60); border: 1px dashed oklch(0.9 0.006 70 / 0.28); padding: 24px; }
+  .sc-play { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: oklch(0.32 0.05 40); color: #fff; display: grid; place-items: center; font-size: 22px; transition: background .15s; }
+  .sc-facade:hover .sc-play, .sc-facade:focus-visible .sc-play { background: oklch(0.62 0.16 40); }
+  .sc-facade-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
+  .sc-facade-note { font-size: 11px; line-height: 1.6; opacity: 0.6; margin-top: 10px; max-width: 52ch; }
 </style>
 </head>
 <body>
@@ -335,9 +348,16 @@
   <div class="listen-inner">
     <div class="listen-title" id="listenTitle">Écouter</div>
     <div class="listen-sub" id="listenSub"></div>
-    <iframe class="sc-player" title="ABC — Split the Lyricist" allow="autoplay" loading="lazy"
-      scrolling="no" frameborder="no"
-      src="https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fsplit_the_lyricist%2Fsets%2Fabc&color=%23e0563a&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>
+    <!-- RGPD : pas d'iframe SoundCloud chargée d'office (elle déposerait des
+         cookies tiers sans consentement). Une façade la charge au clic —
+         le clic vaut acceptation, expliquée juste en dessous du bouton. -->
+    <div class="sc-player sc-facade" id="scFacade" role="button" tabindex="0" aria-label="Charger le lecteur SoundCloud">
+      <div>
+        <div class="sc-play" aria-hidden="true">▶</div>
+        <div class="sc-facade-title" id="scFacadeTitle"></div>
+        <div class="sc-facade-note" id="scFacadeNote"></div>
+      </div>
+    </div>
   </div>
 </section>
 
@@ -408,6 +428,8 @@
       stockUnknown: "Disponibilités non vérifiables pour le moment — la commande est momentanément suspendue. Réessayez dans un instant.",
       stockUnverified: "Disponibilité non vérifiée",
       footTitle: "À propos", listen: "Écouter", listenSub: "La playlist ABC de Split",
+      scPlay: "Charger le lecteur SoundCloud",
+      scConsent: "Le lecteur n'est chargé qu'à votre demande. En cliquant, vous acceptez que SoundCloud reçoive des données (adresse IP, cookies).",
       about: "<p>Chaque création est une œuvre unique.</p><p>Conçue et réalisée à la main, elle associe des pièces neuves et des objets existants, minutieusement sélectionnés puis réinterprétés. Chaque matière est choisie pour son histoire, sa texture et sa capacité à dialoguer avec l'ensemble.</p><p>Imaginer, déconstruire, remodeler, assembler. Le geste est lent, précis, presque méditatif. Chaque œuvre naît d'un équilibre entre mémoire, détournement et création contemporaine.</p><p>Split développe depuis toujours une démarche où l'écriture et les arts plastiques se répondent. Auteur de textes depuis l'adolescence, influencé par le cinéma romantique des années 90, la chanson française à texte et l'esthétique du rap, il transpose cette même sensibilité dans ses œuvres. Chaque création est pensée comme un récit silencieux, où les objets deviennent langage et où la matière prolonge les mots.</p><p>L'œuvre n'a pas vocation à faire consensus. Elle invite à ralentir, à observer et à interroger le regard que nous portons sur les objets, leur valeur et leur fonction.</p><p>Art Beyond Convenience.</p><p><em>Nota bene : Conformément au Code de la propriété intellectuelle, certaines créations peuvent intégrer des œuvres préexistantes dans une démarche de parodie, de pastiche ou de caricature. Elles relèvent de la liberté d'expression artistique et participent à une réflexion critique sur les images, les objets et la culture contemporaine.</em></p>",
       other: "EN", cart: "Panier", add: "Ajouter au panier", added: "Ajouté au panier",
       empty: "Votre panier est vide.<br>Ajoutez une pièce depuis la mosaïque.",
@@ -426,6 +448,8 @@
       stockUnknown: "Availability can't be verified right now — ordering is temporarily paused. Please try again in a moment.",
       stockUnverified: "Availability unverified",
       footTitle: "About", listen: "Listen", listenSub: "Split's ABC playlist",
+      scPlay: "Load the SoundCloud player",
+      scConsent: "The player only loads on demand. By clicking, you agree that SoundCloud receives data (IP address, cookies).",
       about: "<p>Each creation is a one-of-a-kind work of art.</p><p>Designed and handcrafted, every piece combines new and reclaimed components, carefully selected and reinterpreted. Each material is chosen for its history, texture, and ability to engage in dialogue with the whole.</p><p>Imagine. Deconstruct. Reshape. Assemble. The process is deliberate, meticulous, almost meditative. Every work emerges from a balance of memory, transformation, and contemporary creation.</p><p>Split has always developed a practice where writing and visual art coexist. Writing lyrics since adolescence, influenced by 1990s romantic cinema, French chanson, and the raw energy of rap, he brings the same sensibility into his artworks. Each creation is conceived as a silent narrative, where objects become language and materials extend what words cannot express.</p><p>The work is not intended to reach consensus. It invites viewers to slow down, observe, and question the way we perceive objects, their value, and their purpose.</p><p>Art Beyond Convenience.</p><p><em>Note: In accordance with intellectual property law, some artworks may incorporate pre-existing works as parody, pastiche, or caricature. These creations are part of artistic freedom of expression and aim to encourage reflection, interpretation, and dialogue about images, objects, and contemporary culture.</em></p>",
       other: "FR", cart: "Cart", add: "Add to cart", added: "Added to cart",
       empty: "Your cart is empty.<br>Add a piece from the mosaic.",
@@ -965,6 +989,12 @@
     document.getElementById("aboutText").innerHTML = ui.about;
     document.getElementById("listenTitle").textContent = ui.listen;
     document.getElementById("listenSub").textContent = ui.listenSub;
+    // Façade SoundCloud : présente tant que le lecteur n'a pas été chargé.
+    var scTitle = document.getElementById("scFacadeTitle");
+    if (scTitle) {
+      scTitle.textContent = ui.scPlay;
+      document.getElementById("scFacadeNote").textContent = ui.scConsent;
+    }
     updateCartCount();
   }
 
@@ -1297,6 +1327,30 @@
 
   document.getElementById("langBtn").addEventListener("click", toggleLang);
   document.getElementById("cartBtn").addEventListener("click", openCart);
+
+  // Lecteur SoundCloud : créé UNIQUEMENT au clic sur la façade (RGPD — aucune
+  // donnée ne part vers SoundCloud avant une action explicite du visiteur).
+  var SC_SRC = "https://w.soundcloud.com/player/?url=https%3A%2F%2Fsoundcloud.com%2Fsplit_the_lyricist%2Fsets%2Fabc&color=%23e0563a&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false";
+  function loadSoundCloud() {
+    var facade = document.getElementById("scFacade");
+    if (!facade) return;
+    var fr = document.createElement("iframe");
+    fr.className = "sc-player";
+    fr.title = "ABC — Split the Lyricist";
+    fr.setAttribute("allow", "autoplay");
+    fr.setAttribute("scrolling", "no");
+    fr.setAttribute("frameborder", "no");
+    fr.src = SC_SRC;
+    facade.parentNode.replaceChild(fr, facade);
+  }
+  (function () {
+    var facade = document.getElementById("scFacade");
+    if (!facade) return;
+    facade.addEventListener("click", loadSoundCloud);
+    facade.addEventListener("keydown", function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); loadSoundCloud(); }
+    });
+  })();
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
       var z = document.querySelector(".zoom-scrim");

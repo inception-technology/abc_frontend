@@ -7,10 +7,13 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
+  /* Polices auto-hébergées (RGPD : aucune requête vers Google Fonts). */
+  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/syne-latin-700-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fonts/syne-latin-800-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/space-mono-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/space-mono-latin-700-normal.woff2') format('woff2'); }
+
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body { background: oklch(0.955 0.006 70); color: oklch(0.22 0.012 60); font-family: 'Space Mono', monospace; -webkit-font-smoothing: antialiased; line-height: 1.75; }
@@ -39,27 +42,25 @@
     <a class="back" href="/">← Retour à la boutique</a>
   </div>
   <h1>Politique de confidentialité</h1>
-  <div class="updated">Dernière mise à jour : <span class="ph">[À COMPLÉTER : date]</span></div>
-
-  <div class="disclaimer">
-    ⚠ <strong>Modèle à personnaliser.</strong> Ce texte décrit un traitement de données typique pour cette boutique.
-    Vérifiez qu'il correspond exactement à vos pratiques (RGPD) et faites-le relire si nécessaire. Il ne constitue
-    pas un avis juridique.
-  </div>
+  <div class="updated">Dernière mise à jour : 17/07/2026</div>
 
   <h2>1. Responsable du traitement</h2>
   <p>Le responsable du traitement des données personnelles collectées via le Site est
-  <span class="ph">[À COMPLÉTER : nom / dénomination]</span>, joignable à
-  <span class="ph">[À COMPLÉTER : e-mail de contact]</span>.</p>
+  Rachid AOUBOUKDIR (ART BEYOND CONVENIENCE, 59 rue de Ponthieu, Bureau 326, 75008 Paris), joignable à
+  <a href="mailto:contact@artbeyondconvenience.fr">contact@artbeyondconvenience.fr</a>.</p>
 
   <h2>2. Données collectées</h2>
   <ul>
-    <li><strong>Commande et livraison</strong> : nom, adresse postale, e-mail (fournis lors du paiement).</li>
+    <li><strong>Commande et livraison</strong> : nom, adresse postale, e-mail et numéro de téléphone (fournis lors
+    du paiement). Le téléphone est demandé pour la livraison par Colissimo avec remise contre signature
+    (avis de passage, suivi du colis).</li>
     <li><strong>Paiement</strong> : traité par Stripe. Nous ne recevons pas et ne stockons pas vos numéros de carte
     bancaire.</li>
     <li><strong>Navigation</strong> : mesure d'audience anonyme via Vercel Analytics et Speed Insights (statistiques
-    de fréquentation et de performance, sans profilage publicitaire).</li>
+    de fréquentation et de performance, sans cookies et sans profilage publicitaire).</li>
   </ul>
+  <p>Le Site ne propose ni compte client ni newsletter : aucune donnée n'est collectée en dehors des commandes et
+  de la mesure d'audience agrégée.</p>
 
   <h2>3. Finalités et bases légales</h2>
   <ul>
@@ -75,28 +76,48 @@
     <li><strong>Vercel</strong> — hébergement de la boutique et mesure d'audience.</li>
     <li><strong>Railway</strong> — hébergement du serveur et de la base de données.</li>
     <li><strong>Cloudflare R2</strong> — hébergement des images.</li>
-    <li><span class="ph">[À COMPLÉTER : transporteur / autres prestataires]</span></li>
+    <li><strong>Colissimo</strong> — transporteur.</li>
   </ul>
 
-  <h2>5. Durée de conservation</h2>
-  <p>Les données de commande sont conservées le temps nécessaire à leur traitement puis archivées conformément aux
-  obligations légales (notamment comptables). Durées précises : <span class="ph">[À COMPLÉTER]</span>.</p>
+  <h2>5. Transferts hors de l'Union européenne</h2>
+  <p>Certains de nos prestataires (Stripe, Vercel, Cloudflare) sont des sociétés américaines : des données peuvent
+  être transférées vers les États-Unis. Ces transferts sont encadrés par la décision d'adéquation de la Commission
+  européenne relative au <em>EU-U.S. Data Privacy Framework</em>, auquel ces prestataires sont certifiés, et par
+  les clauses contractuelles types de la Commission européenne le cas échéant.</p>
 
-  <h2>6. Cookies et mesure d'audience</h2>
-  <p>Le Site utilise des outils de mesure d'audience respectueux de la vie privée (Vercel). Le cas échéant, précisez
-  ici la liste des cookies déposés et le mécanisme de consentement : <span class="ph">[À COMPLÉTER]</span>.</p>
+  <h2>6. Durée de conservation</h2>
+  <p>Les données liées aux commandes (identité, adresse, e-mail, téléphone) sont conservées le temps nécessaire au
+  traitement de la commande, au service client et aux garanties légales, puis les pièces comptables (factures)
+  sont archivées pendant dix (10) ans conformément à l'article L123-22 du Code de commerce. Les statistiques
+  d'audience sont agrégées et anonymes dès leur collecte, sans limite de durée car elles n'identifient personne.</p>
 
-  <h2>7. Vos droits</h2>
+  <h2>7. Cookies et stockage local</h2>
+  <p>Le Site ne dépose <strong>aucun cookie soumis à consentement</strong>, c'est pourquoi il n'affiche pas de
+  bandeau cookies :</p>
+  <ul>
+    <li>Le navigateur conserve localement votre panier (<code>abc_cart</code>) et votre langue
+    (<code>abc_lang</code>) : stockage strictement nécessaire au service, exempté de consentement
+    (article 82 de la loi « Informatique et Libertés »). Ces informations ne quittent pas votre navigateur.</li>
+    <li>La mesure d'audience (Vercel Analytics / Speed Insights) fonctionne sans cookies, sur des données
+    agrégées, sans suivi entre sites.</li>
+    <li>Le lecteur SoundCloud n'est chargé qu'après un clic explicite de votre part : aucune donnée n'est
+    transmise à SoundCloud avant cette action.</li>
+    <li>Le paiement se déroule sur la page hébergée par Stripe, soumise à la
+    <a href="https://stripe.com/fr/privacy" target="_blank" rel="noopener">politique de confidentialité de Stripe</a>.</li>
+  </ul>
+
+  <h2>8. Vos droits</h2>
   <p>Conformément au RGPD et à la loi « Informatique et Libertés », vous disposez d'un droit d'accès, de
   rectification, d'effacement, de limitation, d'opposition et de portabilité de vos données. Pour les exercer,
-  contactez <span class="ph">[À COMPLÉTER : e-mail]</span>.</p>
+  contactez <a href="mailto:contact@artbeyondconvenience.fr">contact@artbeyondconvenience.fr</a>. Une réponse vous
+  sera apportée dans un délai d'un mois.</p>
 
-  <h2>8. Réclamation</h2>
+  <h2>9. Réclamation</h2>
   <p>Vous pouvez introduire une réclamation auprès de la CNIL (Commission Nationale de l'Informatique et des
   Libertés — <a href="https://www.cnil.fr" target="_blank" rel="noopener">www.cnil.fr</a>) si vous estimez que le
   traitement de vos données n'est pas conforme.</p>
 
-  <div class="foot">ABC by Split — Politique de confidentialité</div>
+  <div class="foot">ART BEYOND CONVENIENCE — Politique de confidentialité</div>
 </div>
 </body>
 </html>
