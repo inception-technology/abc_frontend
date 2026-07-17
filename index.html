@@ -365,7 +365,7 @@
   <div class="foot-inner">
     <div class="foot-title" id="footTitle"></div>
     <div class="about" id="aboutText"></div>
-    <div class="socials" aria-label="Réseaux sociaux">
+    <div class="socials" id="socialsNav" aria-label="Réseaux sociaux">
       <a href="https://www.tiktok.com/@split_the_lyricist" target="_blank" rel="noopener" title="TikTok" aria-label="TikTok">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.31 2.05 1.53 3.4 3.5 3.6v2.45c-1.28.12-2.5-.28-3.62-1.02v5.72c0 3.35-2.4 5.75-5.56 5.75-3.02 0-5.32-2.3-5.32-5.3 0-3.2 2.62-5.5 6-5.13v2.63c-.42-.13-.86-.2-1.3-.2-1.4 0-2.4 1.02-2.4 2.4 0 1.4 1 2.47 2.42 2.47 1.5 0 2.48-1.12 2.48-2.82V3h3.42z"/></svg>
       </a>
@@ -379,14 +379,17 @@
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 14.2v2.8h.9v-2.8H2zm1.8-1.3V17h.9v-4.1h-.9zm1.8-.8V17h.9v-4.9h-.9zm1.8-.7V17h.9V11.4h-.9zm1.9.7V17h.9v-6.2h-.9zm2.6-3.2c-.5 0-1 .1-1.5.3V17h7.1a2.55 2.55 0 0 0 .1-5.1c-.25 0-.5.04-.73.1A4.02 4.02 0 0 0 12.7 8.9z"/></svg>
       </a>
     </div>
-    <nav class="foot-links" aria-label="Informations légales">
-      <a href="/cgv.html">CGV</a>
-      <a href="/confidentialite.html">Politique de confidentialité</a>
-      <a href="/conditions.html">Conditions d'utilisation</a>
+    <!-- Libellés ET cibles traduits par renderChrome. Les pages FR font foi
+         (documents juridiques de droit français) ; les pages -en sont des
+         traductions de courtoisie, servies quand la langue est EN. -->
+    <nav class="foot-links" id="legalNav" aria-label="Informations légales">
+      <a href="/cgv.html" id="legalCgvLink">CGV</a>
+      <a href="/confidentialite.html" id="legalPrivacyLink">Politique de confidentialité</a>
+      <a href="/conditions.html" id="legalTermsLink">Conditions d'utilisation</a>
     </nav>
     <div class="foot-contact">
       <a href="mailto:contact@artbeyondconvenience.fr">contact@artbeyondconvenience.fr</a>
-      <div class="foot-legal">ABC by Split - all right reserved - 2026</div>
+      <div class="foot-legal">ABC by Split — All rights reserved — 2026</div>
     </div>
   </div>
 </footer>
@@ -430,6 +433,9 @@
       footTitle: "À propos", listen: "Écouter", listenSub: "La playlist ABC de Split",
       scPlay: "Charger le lecteur SoundCloud",
       scConsent: "Le lecteur n'est chargé qu'à votre demande. En cliquant, vous acceptez que SoundCloud reçoive des données (adresse IP, cookies).",
+      legalCgv: "CGV", legalPrivacy: "Politique de confidentialité", legalTerms: "Conditions d'utilisation",
+      socialsLabel: "Réseaux sociaux", legalNavLabel: "Informations légales",
+      payError: "Erreur paiement", payBadResponse: "Réponse invalide",
       about: "<p>Chaque création est une œuvre unique.</p><p>Conçue et réalisée à la main, elle associe des pièces neuves et des objets existants, minutieusement sélectionnés puis réinterprétés. Chaque matière est choisie pour son histoire, sa texture et sa capacité à dialoguer avec l'ensemble.</p><p>Imaginer, déconstruire, remodeler, assembler. Le geste est lent, précis, presque méditatif. Chaque œuvre naît d'un équilibre entre mémoire, détournement et création contemporaine.</p><p>Split développe depuis toujours une démarche où l'écriture et les arts plastiques se répondent. Auteur de textes depuis l'adolescence, influencé par le cinéma romantique des années 90, la chanson française à texte et l'esthétique du rap, il transpose cette même sensibilité dans ses œuvres. Chaque création est pensée comme un récit silencieux, où les objets deviennent langage et où la matière prolonge les mots.</p><p>L'œuvre n'a pas vocation à faire consensus. Elle invite à ralentir, à observer et à interroger le regard que nous portons sur les objets, leur valeur et leur fonction.</p><p>Art Beyond Convenience.</p><p><em>Nota bene : Conformément au Code de la propriété intellectuelle, certaines créations peuvent intégrer des œuvres préexistantes dans une démarche de parodie, de pastiche ou de caricature. Elles relèvent de la liberté d'expression artistique et participent à une réflexion critique sur les images, les objets et la culture contemporaine.</em></p>",
       other: "EN", cart: "Panier", add: "Ajouter au panier", added: "Ajouté au panier",
       empty: "Votre panier est vide.<br>Ajoutez une pièce depuis la mosaïque.",
@@ -450,6 +456,9 @@
       footTitle: "About", listen: "Listen", listenSub: "Split's ABC playlist",
       scPlay: "Load the SoundCloud player",
       scConsent: "The player only loads on demand. By clicking, you agree that SoundCloud receives data (IP address, cookies).",
+      legalCgv: "Terms of Sale", legalPrivacy: "Privacy Policy", legalTerms: "Terms of Use",
+      socialsLabel: "Social media", legalNavLabel: "Legal information",
+      payError: "Payment error", payBadResponse: "Invalid response",
       about: "<p>Each creation is a one-of-a-kind work of art.</p><p>Designed and handcrafted, every piece combines new and reclaimed components, carefully selected and reinterpreted. Each material is chosen for its history, texture, and ability to engage in dialogue with the whole.</p><p>Imagine. Deconstruct. Reshape. Assemble. The process is deliberate, meticulous, almost meditative. Every work emerges from a balance of memory, transformation, and contemporary creation.</p><p>Split has always developed a practice where writing and visual art coexist. Writing lyrics since adolescence, influenced by 1990s romantic cinema, French chanson, and the raw energy of rap, he brings the same sensibility into his artworks. Each creation is conceived as a silent narrative, where objects become language and materials extend what words cannot express.</p><p>The work is not intended to reach consensus. It invites viewers to slow down, observe, and question the way we perceive objects, their value, and their purpose.</p><p>Art Beyond Convenience.</p><p><em>Note: In accordance with intellectual property law, some artworks may incorporate pre-existing works as parody, pastiche, or caricature. These creations are part of artistic freedom of expression and aim to encourage reflection, interpretation, and dialogue about images, objects, and contemporary culture.</em></p>",
       other: "FR", cart: "Cart", add: "Add to cart", added: "Added to cart",
       empty: "Your cart is empty.<br>Add a piece from the mosaic.",
@@ -994,7 +1003,20 @@
     if (scTitle) {
       scTitle.textContent = ui.scPlay;
       document.getElementById("scFacadeNote").textContent = ui.scConsent;
+      document.getElementById("scFacade").setAttribute("aria-label", ui.scPlay);
     }
+    // Liens légaux et labels d'accessibilité : suivent aussi la langue.
+    // En EN, on pointe vers les traductions de courtoisie (-en) ; les pages FR
+    // restent la version qui fait foi.
+    var legalSuffix = state.lang === "en" ? "-en" : "";
+    var cgvLink = document.getElementById("legalCgvLink");
+    cgvLink.textContent = ui.legalCgv; cgvLink.href = "/cgv" + legalSuffix + ".html";
+    var privacyLink = document.getElementById("legalPrivacyLink");
+    privacyLink.textContent = ui.legalPrivacy; privacyLink.href = "/confidentialite" + legalSuffix + ".html";
+    var termsLink = document.getElementById("legalTermsLink");
+    termsLink.textContent = ui.legalTerms; termsLink.href = "/conditions" + legalSuffix + ".html";
+    document.getElementById("legalNav").setAttribute("aria-label", ui.legalNavLabel);
+    document.getElementById("socialsNav").setAttribute("aria-label", ui.socialsLabel);
     updateCartCount();
   }
 
@@ -1280,10 +1302,10 @@
         body: JSON.stringify(items)
       }).then(function (r) {
         if (r.ok) return r.json();
-        return r.json().catch(function () { return {}; }).then(function (e) { throw new Error(e.detail || "Erreur paiement"); });
+        return r.json().catch(function () { return {}; }).then(function (e) { throw new Error(e.detail || UI[state.lang].payError); });
       }).then(function (d) {
         if (d && d.url) { window.location.href = d.url; }
-        else { throw new Error("Réponse invalide"); }
+        else { throw new Error(UI[state.lang].payBadResponse); }
       }).catch(function (e) {
         showToast((state.lang === "fr" ? "Paiement indisponible — " : "Payment unavailable — ") + e.message);
         if (btn) { btn.disabled = false; btn.textContent = UI[state.lang].checkout; }
