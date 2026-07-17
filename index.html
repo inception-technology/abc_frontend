@@ -7,6 +7,12 @@
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="/logo.png">
 <script>window.ABC_API_BASE = "https://web-production-62bbe.up.railway.app/";</script>
+<!-- Catalogue injecté au déploiement par build.mjs. Vide en dev/local.
+     Sert la PRÉSENTATION (affichage instantané, sans attendre l'API).
+     Le STOCK de ce snapshot n'est PAS de confiance : il date du dernier
+     déploiement, alors que qty change à chaque vente. La boutique n'autorise
+     l'ajout au panier qu'une fois l'API confirmée (state.stockTrusted). -->
+<script id="abc-catalog" type="application/json">[]</script>
 <!-- Vercel Web Analytics + Speed Insights (site statique) -->
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
@@ -98,6 +104,24 @@
   .stick { position: sticky; top: 0; height: 100vh; overflow: hidden; }
   .stage { position: absolute; inset: 82px 24px 24px 24px; }
   .grid { position: relative; width: 100%; height: 100%; }
+  /* Message d'état de la mosaïque (chargement / erreur API). Masqué dès que
+     le catalogue est rendu. */
+  .grid-msg {
+    position: absolute; inset: 0; display: none; place-content: center;
+    text-align: center; line-height: 1.6; padding: 0 24px;
+    font-size: 13px; letter-spacing: 0.04em; color: oklch(0.55 0.02 70);
+  }
+  .grid-msg.on { display: grid; }
+  /* Bandeau « stock non vérifié » : se superpose SANS masquer la mosaïque —
+     les pièces restent visibles, seule la vente est bloquée. */
+  .stale-banner {
+    position: absolute; left: 0; right: 0; bottom: 0; display: none;
+    padding: 10px 16px; text-align: center; line-height: 1.5;
+    font-size: 12px; letter-spacing: 0.03em;
+    background: oklch(0.55 0.16 40 / 0.94); color: oklch(0.99 0 0);
+    border-radius: 0 0 10px 10px;
+  }
+  .stale-banner.on { display: block; }
 
   .tile {
     position: absolute; left: 0; top: 0; width: 80px; height: 80px; overflow: hidden;
@@ -301,6 +325,8 @@
   <div class="stick">
     <div class="stage">
       <div class="grid" id="grid"></div>
+      <div class="grid-msg" id="gridMsg" role="status" aria-live="polite"></div>
+      <div class="stale-banner" id="staleBanner" role="status" aria-live="polite"></div>
     </div>
   </div>
 </div>
@@ -353,35 +379,34 @@
   "use strict";
 
   // ---------------------------------------------------------------------------
-  // Data (from Patchwork.dc.html) — [title, category, description]
+  // Catalogue — snapshot injecté au build, puis rafraîchi par l'API.
+  //
+  //   snapshot (build.mjs)  -> PRÉSENTATION : noms, images, descriptions, prix.
+  //                            Permet d'afficher la mosaïque instantanément,
+  //                            sans dépendre du réveil de Railway.
+  //   API (au runtime)      -> VÉRITÉ : le stock, qui change à chaque vente.
+  //
+  // Le stock du snapshot date du dernier déploiement : il ne fait PAS foi.
+  // `state.stockTrusted` reste faux tant que l'API n'a pas répondu, et
+  // `canAdd()` refuse alors toute mise au panier. On affiche, on ne vend pas.
   // ---------------------------------------------------------------------------
-  var CATALOG = [
-    {id:"14",name:"Cobain 27",cat:"sweater",price:60,color:"Gris chiné clair",size:"XL",ref:"COBAI-SWE-HLG-XL",qty:1,img:"cobain-27.jpg",descFr:"L'arithmétique macabre de Kurt Cobain. Club 27. Faites vos calculs. Création Française.",descEn:"Kurt Cobain's grisly arithmetic. Club 27. Do your math. French Creation."},
-    {id:"10",name:"Big Numbers",cat:"sweater",price:60,color:"Noir",size:"XL",ref:"BIGNU-SWE-BLK-XL",qty:1,img:"big-numbers.jpg",descFr:"Le Notorious BIG en quelques chiffres. Tout en peinture, ne perdez pas le fils du rouge. Création Française.",descEn:"The Notorious BIG in a few figures. Everything painted, don't lose the red thread. French Creation."},
-    {id:"20",name:"Emo Lisabeth T",cat:"sweater",price:60,color:"Gris chiné clair",size:"L",ref:"EMOLI-SWE-HLG-L",qty:1,img:"emo-lisabeth-t.jpg",descFr:"Portrait d'Elizabeth Taylor revisité. Quelques patch sombre, un peu de rimmel, des tatouages et Elizabeth vous ensorcelle. Ceci n'est pas Moschino. Création Française.",descEn:"A new sight on Elisabeth Taylor. A few gloomy patches, a bit of mascara, tattoos and Elizabeth bewitches you. This is not Moschino. French creation."},
-    {id:"17",name:"Fanksy Art",cat:"sweater",price:60,color:"Noir",size:"M",ref:"FANKS-SWE-BLK-M",qty:0,img:"fanksy-art.jpg",descFr:"Quand l'art de Banksy se mélange au luxe. De l'art de rue bordé de luxe. Ceci n'est pas Fendi, ceci n'est pas Banksy Création Française.",descEn:"When Banksy's art mixes with luxury. Street art bordered by luxury. This is not Fendi, this is not Banksy. French Creation."},
-    {id:"9",name:"Iron Mike",cat:"sweater",price:60,color:"Tie dye noir",size:"L",ref:"IRON-SWE-TDB-L",qty:1,img:"iron-mike.jpg",descFr:"Quand tout est lourd avec Mike Tyson Un sweat tie dye confortable pour porter du lourd. Création Française.",descEn:"When everything is heavy with Mike Tyson A comfortable tie dye sweater to wear heavy stuff. French Creation."},
-    {id:"19",name:"J.F.King",cat:"sweater",price:60,color:"Gris",size:"L",ref:"JFKIN-SWE-GRY-L",qty:1,img:"jfking.jpg",descFr:"J.F. Kennedy, un homme aux ambitions suicidaires. Quelques patch, un crochet et beaucoup de pochoirs. Derrière chaque grand projet se cache de grands enjeux. Malheureux incident ou sacrifice d'agenda, bientôt les dossiers déclassés … Création Française.",descEn:"J.F. Kennedy, a man with suicidal ambitions. A few patches, a crochet hook and a lot of stencils. Behind every major project hides major challenges. Unfortunate incident or agenda's sacrifice, soon the files will be declassified... French creation."},
-    {id:"18",name:"Jok Nicholson",cat:"sweater",price:60,color:"Tie dye rouge",size:"XL",ref:"JOKNI-SWE-TDR-XL",qty:1,img:"jok-nicholson.jpg",descFr:"Jack Nicholson culte. \"As-tu jamais dansé avec le diable au clair de lune ?\" Le Joker - Batman (1989). Un sweat en tie dye d'énigmes. Création Française.",descEn:"Jack Nicholson is cult. \"Have you ever danced with the devil in the moonlight?\" The Joker - Batman (1989). A tie dye sweatshirt full of enigmas. French creation."},
-    {id:"13",name:"Optical Kiss",cat:"sweater",price:60,color:"Blanc",size:"XL",ref:"OPTIC-SWE-WHT-XL",qty:1,img:"",descFr:"Le baiser d'un milliardaire. Un Kiss iconique dans un blanc optique. Création Française.",descEn:"A billionaire's kiss. An iconic Kiss in optic white. French creation."},
-    {id:"3",name:"Tyler Champ",cat:"sweater",price:60,color:"Multicolor",size:"L",ref:"TYLER-SWE-MLT-L",qty:1,img:"tyler-champ.jpg",descFr:"Tyler the Creator. Un Tyler block sur un sweat color block. Ceci n'est pas Champion. Création Française.",descEn:"Tyler the Creator. A Tyler block on a color block sweater. This is not Champion. Creation French."},
-    {id:"6",name:"Pablo V",cat:"sweater",price:60,color:"Gris anthracite",size:"XL",ref:"PABLO-SWE-CGR-XL",qty:0,img:"pablo-v.jpg",descFr:"Pablo Escobar. Un sweat de destins brisés dans le luxe et la coc, sur bande réfléchissante et mousqueton. Ceci n'est pas Versace. Création Française.",descEn:"Pablo Escobar. A sweater of broken destinies in luxury and coco, with reflective stripe and carabiner. This is not Versace. French creation."},
-    {id:"8",name:"Red Rum",cat:"sweater",price:60,color:"Tie dye noir",size:"L",ref:"REDRU-SWE-TDB-L",qty:1,img:"red-rum.jpg",descFr:"American Gothic X The Shining Un sweat en tie dye aussi intense, inquiétant et énigmatique qu'un chef d'oeuvre de Wood ou de Kubrick. Création Française.",descEn:"American Gothic X The Shining A tie dye sweater as intense, disturbing and enigmatic as a Wood or a Kubrick masterpiece. French creation."},
-    {id:"5",name:"Angie Power",cat:"sweater",price:60,color:"Javellisé",size:"XL",ref:"ANGIE-SWE-BLD-XL",qty:1,img:"angie-power.jpg",descFr:"Angela Davis, figure emblématique ou problématique. Un sweat épais complètement javélisé et codé. Ceci n'est pas Champion. Création Française.",descEn:"Angela Davis, emblematic or problematic figure. A thick sweatshirt completely bleached and coded. This is not Champion. French creation."},
-    {id:"16",name:"Malcom X Ali",cat:"sweater",price:60,color:"Javellisé",size:"XL",ref:"MALCO-SWE-BLD-XL",qty:0,img:"malcom-x-ali.jpg",descFr:"Malcolm X et Mohamed Ali. Le sweat de la fraternité. Création Française.",descEn:"Malcolm X and Mohamed Ali. Brotherhood sweater. French creation."},
-    {id:"1",name:"Oscar Morrissey",cat:"tshirt",price:40,color:"Javellisé",size:"L",ref:"OSCAR-TSH-BLD-L",qty:1,img:"oscar-morrissey.jpg",descFr:"Oscar inspiration sauvage de Morrissey. “You don’t love someone because of their looks, their clothes or their fancy car, but because they sing a song that only you can hear.” « Vous n'aimez pas quelqu'un pour son apparence, ses vêtements ou sa belle voiture, mais parce qu'il chante une chanson que vous seul pouvez entendre. » @oscarWilde Création Française.",descEn:"Oscar wild inspiration from Morrissey. “You don’t love someone because of their looks, their clothes or their fancy car, but because they sing a song that only you can hear.” @oscarWilde French Creation."},
-    {id:"7",name:"M Brotherhood",cat:"tshirt",price:40,color:"Multicolor",size:"L",ref:"MBROT-TSH-MLT-L",qty:1,img:"m-brotherhood.jpg",descFr:"Frères d'M. Un tshirt bien tie dye pour mettre en valeur le N&B de M&M et quelques codes secrets. Création Française.",descEn:"M brotherz. A nice tie dye t-shirt to highlight the B&W of M&M and some secret codes. French creation."},
-    {id:"2",name:"Ali Goat",cat:"jacket",price:90,color:"Jean",size:"L",ref:"ALIGO-JAC-DNM-TU",qty:1,img:"ali-goat.jpg",descFr:"Le GOAT, Mohamed Ali. Un combat de vestes en jean pas très orthodoxe pour une dédicace au GOAT de la boxe. Création Française.",descEn:"The GOAT, Mohamed Ali. A not so orthodox denim jackets fight for a dedication to the GOAT of boxing. French creation."},
-    {id:"15",name:"Marylin Off",cat:"jacket",price:90,color:"Jean",size:"L",ref:"MARYL-JAC-DNM-TU",qty:0,img:"marylin-off.jpg",descFr:"Marylin Monroe. Une veste en jean pas si classique, tout comme Marlyn, un mousqueton porte-clés ou autre, quelques bandes pas OW et au dos ce n'est toujours pas OW. Ceci n'est pas Off-White. Création Française.",descEn:"Marylin Monroe. A not so classic denim jacket, just like Marlyn, a keychain carabiner or other, a few stripes not OW and on the back it's still not OW. This is not Off-White. French Creation."},
-    {id:"11",name:"Demnike",cat:"jacket",price:90,color:"Jean",size:"L",ref:"DEMNI-JAC-DNM-TU",qty:1,img:"",descFr:"Je veux tes skulls. Une chemise en jean manche courte, des touches de camouflage, une virgule en cuir de qualité, un bon gros Crimson Ghost pour garder tes arrières et non pas de secrets ici. Ceci n'est pas du Nike, ceci n'est pas du LV. Création Française.",descEn:"I want your skulls. A short-sleeved denim shirt, touches of camouflage, a quality leather swoosh, a big Crimson Ghost to keep your back and no secrets here. This is not Nike, this is not LV. French Creation."},
-    {id:"4",name:"Creepy Bomb",cat:"jacket",price:90,color:"Cuivré",size:"XL",ref:"CREEP-JAC-COP-TU",qty:1,img:"creepy-bomb.jpg",descFr:"Qui est ce type flippant ? Un bomber chaud, orné de patchs, un peu de peinture, quelques massacres à la tronçonneuse et beaucoup de codes secrets. Création Française.",descEn:"Who is this creepy guy? A warm bomber jacket, decorated with patches, a little paint, a few chainsaw massacres and lots of secret codes. French creation."},
-    {id:"12",name:"Army Walk",cat:"jacket",price:90,color:"Camouflage",size:"S",ref:"ARMY-JAC-CMO-TU",qty:1,img:"army-walk.jpg",descFr:"Cette veste n'est pas faite pour défiler. \"La juge nique sa mère. Le dernier juge que j'ai vu avait plus de vice que le dealer de ma rue\" @Assassin - Je glisse Une veste militaire ornée d'un skull peint, d'une bande LV en coton par dessus une fermeture éclaire, quelques épingles à nourrice, fusion en denim au dos, des patchs détachables, un mousqueton porte-clés et beaucoup de codes secrets. Ceci n'est pas LV, ceci n'est pas Supreme. Création Française.",descEn:"This jacket is not made for catwalk. \"La juge nique sa mère. Le dernier juge que j'ai vu avait plus de vice que le dealer de ma rue\" \"Motherfuc***g judge. The last judge I saw had more vice than the dealer on my block\" @Assassin - I slide A military jacket decorated with a painted skull, a cotton strip over the zipper, a few safety pins, denim fusion on the back, detachable patches, a keychain carabiner and a lot of secret codes. This is not LV, this is not Supreme. French creation."},
-  ];
+  function embeddedCatalog() {
+    try {
+      var node = document.getElementById("abc-catalog");
+      var list = node ? JSON.parse(node.textContent || "[]") : [];
+      return Array.isArray(list) ? list : [];
+    } catch (e) { return []; }
+  }
+
+  var CATALOG = [];
 
   var UI = {
     fr: {
       tagline: "Mode & culture urbaine",
-      count: "20 pièces", scroll: "Défilez ↓", close: "Fermer",
+      count: function (n) { return n + (n > 1 ? " pièces" : " pièce"); }, scroll: "Défilez ↓", close: "Fermer",
+      loading: "Chargement…", loadError: "Catalogue momentanément indisponible.<br>Réessayez dans un instant.",
+      stockUnknown: "Disponibilités non vérifiables pour le moment — la commande est momentanément suspendue. Réessayez dans un instant.",
+      stockUnverified: "Disponibilité non vérifiée",
       footTitle: "À propos", listen: "Écouter", listenSub: "La playlist ABC de Split",
       about: "<p>Chaque création est une œuvre unique.</p><p>Conçue et réalisée à la main, elle associe des pièces neuves et des objets existants, minutieusement sélectionnés puis réinterprétés. Chaque matière est choisie pour son histoire, sa texture et sa capacité à dialoguer avec l'ensemble.</p><p>Imaginer, déconstruire, remodeler, assembler. Le geste est lent, précis, presque méditatif. Chaque œuvre naît d'un équilibre entre mémoire, détournement et création contemporaine.</p><p>Split développe depuis toujours une démarche où l'écriture et les arts plastiques se répondent. Auteur de textes depuis l'adolescence, influencé par le cinéma romantique des années 90, la chanson française à texte et l'esthétique du rap, il transpose cette même sensibilité dans ses œuvres. Chaque création est pensée comme un récit silencieux, où les objets deviennent langage et où la matière prolonge les mots.</p><p>L'œuvre n'a pas vocation à faire consensus. Elle invite à ralentir, à observer et à interroger le regard que nous portons sur les objets, leur valeur et leur fonction.</p><p>Art Beyond Convenience.</p><p><em>Nota bene : Conformément au Code de la propriété intellectuelle, certaines créations peuvent intégrer des œuvres préexistantes dans une démarche de parodie, de pastiche ou de caricature. Elles relèvent de la liberté d'expression artistique et participent à une réflexion critique sur les images, les objets et la culture contemporaine.</em></p>",
       other: "EN", cart: "Panier", add: "Ajouter au panier", added: "Ajouté au panier",
@@ -396,7 +421,10 @@
     },
     en: {
       tagline: "Fashion & urban culture",
-      count: "20 pieces", scroll: "Scroll ↓", close: "Close",
+      count: function (n) { return n + (n > 1 ? " pieces" : " piece"); }, scroll: "Scroll ↓", close: "Close",
+      loading: "Loading…", loadError: "Catalogue temporarily unavailable.<br>Please try again in a moment.",
+      stockUnknown: "Availability can't be verified right now — ordering is temporarily paused. Please try again in a moment.",
+      stockUnverified: "Availability unverified",
       footTitle: "About", listen: "Listen", listenSub: "Split's ABC playlist",
       about: "<p>Each creation is a one-of-a-kind work of art.</p><p>Designed and handcrafted, every piece combines new and reclaimed components, carefully selected and reinterpreted. Each material is chosen for its history, texture, and ability to engage in dialogue with the whole.</p><p>Imagine. Deconstruct. Reshape. Assemble. The process is deliberate, meticulous, almost meditative. Every work emerges from a balance of memory, transformation, and contemporary creation.</p><p>Split has always developed a practice where writing and visual art coexist. Writing lyrics since adolescence, influenced by 1990s romantic cinema, French chanson, and the raw energy of rap, he brings the same sensibility into his artworks. Each creation is conceived as a silent narrative, where objects become language and materials extend what words cannot express.</p><p>The work is not intended to reach consensus. It invites viewers to slow down, observe, and question the way we perceive objects, their value, and their purpose.</p><p>Art Beyond Convenience.</p><p><em>Note: In accordance with intellectual property law, some artworks may incorporate pre-existing works as parody, pastiche, or caricature. These creations are part of artistic freedom of expression and aim to encourage reflection, interpretation, and dialogue about images, objects, and contemporary culture.</em></p>",
       other: "FR", cart: "Cart", add: "Add to cart", added: "Added to cart",
@@ -427,6 +455,10 @@
     checkout: false,   // showing confirmation
     cart: {},          // { index: qty }
     orderNo: null,
+    gridMsg: "loading", // état de la mosaïque : "loading" | "error" | null
+    // Le stock est-il confirmé par l'API ? Faux tant qu'elle n'a pas répondu :
+    // le snapshot du build ne fait pas foi (voir canAdd()).
+    stockTrusted: false,
   };
 
   // persistence (safe on file:// via try/catch)
@@ -548,6 +580,9 @@
   }
 
   function buildArrangements() {
+    // Catalogue vide (API pas encore répondu, ou en erreur) : rien à disposer.
+    // tick() s'appuie sur `arrangements.length` pour ne rien animer.
+    if (!N) { arrangements = []; depth = []; phase = []; return; }
     var cols = mobileCols();
     if (cols > 0) { buildGridArrangements(cols); return; }
     var base = Array.from({ length: N }, function (_, i) { return i; });
@@ -616,6 +651,17 @@
   }
 
   // Derives the thumbnail URL from a full image URL (name.webp -> name-thumb.webp).
+  //
+  // ⚠ CONTRAT PARTAGÉ AVEC LE BACKEND — ne pas modifier isolément.
+  // La règle appartient à backend/media/naming.py (thumb_name). Ce regex en est
+  // le miroir exact ; backend/tests/test_media_naming.py exécute les DEUX
+  // implémentations sur les mêmes cas et échoue si elles divergent.
+  // Toute divergence = le front demande des vignettes qui n'existent pas (404).
+  //
+  // TODO : faire renvoyer l'URL de vignette par l'API (champ `thumbs`) et
+  // supprimer cette dérivation — le contrat cessera alors d'être implicite.
+  // C'est la seule correction de fond ; en attendant, le test d'équivalence
+  // ci-dessus est le filet.
   function thumbUrl(u) { return u ? u.replace(/(\.[a-zA-Z0-9]+)(\?.*)?$/, "-thumb$1$2") : u; }
 
   // Small image for tiles / cart : loads the thumbnail, falls back to the full
@@ -657,7 +703,15 @@
 
   function inCartQty(i) { return state.cart[i] || 0; }
   function isSoldOut(a) { return a.stock <= 0; }
-  function canAdd(a) { return a.stock > 0 && inCartQty(a.i) < a.stock; }
+
+  // Point de passage UNIQUE de la mise au panier.
+  // `state.stockTrusted` : tant que l'API n'a pas confirmé le stock, on refuse
+  // toute vente. Le snapshot du build date du dernier déploiement et pourrait
+  // remettre en vente une pièce unique déjà partie — paiement encaissé, rien à
+  // expédier. C'est le risque n°1 du projet : la garde est ici.
+  function canAdd(a) {
+    return state.stockTrusted && a.stock > 0 && inCartQty(a.i) < a.stock;
+  }
 
   function buildTiles() {
     grid.innerHTML = "";
@@ -680,6 +734,9 @@
         add.type = "button";
         add.textContent = "+";
         add.title = UI[state.lang].add;
+        // Stock non confirmé par l'API : bouton inerte. buildTiles() est rejoué
+        // dès que l'API répond, ce qui le réactive.
+        add.disabled = !state.stockTrusted;
         add.addEventListener("click", function (e) { e.stopPropagation(); addToCart(a.i); });
         tile.appendChild(add);
       }
@@ -806,10 +863,17 @@
     for (var k in state.cart) t += (articles[k].price * state.cart[k]);
     return t;
   }
+  // Pourquoi l'ajout est refusé. Distinguer les cas : dire « Déjà dans le
+  // panier » alors que le stock n'est simplement pas vérifié serait un mensonge.
+  function addBlockedReason(a) {
+    if (!state.stockTrusted) return UI[state.lang].stockUnverified;
+    return isSoldOut(a) ? UI[state.lang].soldout : UI[state.lang].inCart;
+  }
+
   function addToCart(i) {
     var a = articles[i];
     if (!canAdd(a)) {
-      showToast((isSoldOut(a) ? UI[state.lang].soldout : UI[state.lang].inCart) + " — " + a.title);
+      showToast(addBlockedReason(a) + " — " + a.title);
       return;
     }
     state.cart[i] = (state.cart[i] || 0) + 1;
@@ -854,8 +918,15 @@
     document.getElementById("tagline").textContent = ui.tagline;
     document.getElementById("langLabel").textContent = ui.other;
     document.getElementById("cartWord").textContent = ui.cart;
-    document.getElementById("countLabel").textContent = ui.count;
-    document.getElementById("scrollLabel").textContent = ui.scroll;
+    // Tant que le catalogue n'est pas chargé, on n'affiche pas "0 pièce".
+    document.getElementById("countLabel").textContent =
+      CATALOG.length ? ui.count(CATALOG.length) : (state.gridMsg === "error" ? "" : ui.loading);
+    document.getElementById("scrollLabel").textContent = CATALOG.length ? ui.scroll : "";
+    if (state.gridMsg) setGridMsg(state.gridMsg); // ré-affiche le message dans la bonne langue
+    // Bandeau « stock non vérifié » : suit aussi la langue.
+    if (staleBanner && staleBanner.classList.contains("on")) {
+      staleBanner.innerHTML = ui.stockUnknown;
+    }
     document.getElementById("footTitle").innerHTML = ui.footTitle;
     document.getElementById("aboutText").innerHTML = ui.about;
     document.getElementById("listenTitle").textContent = ui.listen;
@@ -1227,11 +1298,37 @@
   }
 
   // ---------------------------------------------------------------------------
-  // Boot — embedded catalogue (from 20241108-product_import.csv),
-  // then upgraded to live API data when served by the backend.
+  // Boot — snapshot d'abord (affichage immédiat), API ensuite (vérité du stock).
+  //
+  // 1. Le snapshot injecté au build rend la mosaïque tout de suite, depuis le
+  //    CDN : plus de cascade HTML -> JS -> fetch, plus de page vide quand
+  //    Railway dort. Mais `stockTrusted` reste faux : on affiche, on ne vend pas.
+  // 2. L'API confirme le stock -> `stockTrusted` passe à vrai, les boutons
+  //    « Ajouter » s'activent.
+  // 3. Si l'API échoue : le snapshot reste affiché (mieux que rien), la vente
+  //    reste bloquée, et un bandeau l'explique.
   // ---------------------------------------------------------------------------
-  buildArrangements();
-  buildTiles();
+  var gridMsg = document.getElementById("gridMsg");
+
+  // État : "loading" | "error" | "stale" | null (null = tout va bien).
+  function setGridMsg(kind) {
+    state.gridMsg = kind || null;
+    if (!state.gridMsg) { gridMsg.classList.remove("on"); gridMsg.innerHTML = ""; return; }
+    gridMsg.innerHTML = UI[state.lang][GRID_MSG_KEY[state.gridMsg]];
+    gridMsg.classList.add("on");
+  }
+  var GRID_MSG_KEY = { loading: "loading", error: "loadError", stale: "stockUnknown" };
+
+  // Le message « stock indisponible » se superpose à la mosaïque : il ne doit
+  // pas masquer les pièces, seulement expliquer pourquoi on ne peut pas acheter.
+  function showStaleBanner() {
+    setGridMsg(null);
+    staleBanner.innerHTML = UI[state.lang].stockUnknown;
+    staleBanner.classList.add("on");
+  }
+  var staleBanner = document.getElementById("staleBanner");
+
+  applyCatalog(embeddedCatalog());   // 1. snapshot : affichage immédiat
   renderChrome();
   requestAnimationFrame(tick);
 
@@ -1239,11 +1336,30 @@
   // URL (e.g. "https://abc-api.up.railway.app/") so the shop loads live data.
   var API_BASE = (typeof window !== "undefined" && window.ABC_API_BASE) ? String(window.ABC_API_BASE) : "";
   if (API_BASE && API_BASE.slice(-1) !== "/") API_BASE += "/";
+  setGridMsg(CATALOG.length ? null : "loading");
+
+  function onCatalogFailure() {
+    // Snapshot présent : on le garde affiché, vente bloquée (stockTrusted faux).
+    // Rien du tout : la boutique n'a rien à montrer.
+    if (CATALOG.length) { showStaleBanner(); } else { setGridMsg("error"); }
+  }
+
   if (typeof fetch === "function" && (API_BASE || location.protocol === "http:" || location.protocol === "https:")) {
     fetch(API_BASE + "api/products")
       .then(function (r) { return r.ok ? r.json() : null; })
-      .then(function (list) { if (list && list.length) { applyCatalog(list); renderChrome(); } })
-      .catch(function () { /* offline / file:// — keep embedded catalogue */ });
+      .then(function (list) {
+        if (!list || !list.length) { onCatalogFailure(); return; }
+        // ORDRE IMPORTANT : `stockTrusted` doit être vrai AVANT applyCatalog(),
+        // car buildTiles() lit ce flag pour (dé)sactiver les boutons « + ».
+        // L'inverse laisserait des boutons inertes malgré une API qui répond.
+        state.stockTrusted = true;
+        applyCatalog(list);            // l'API fait foi -> la vente s'ouvre
+        renderChrome();
+        setGridMsg(null);
+      })
+      .catch(onCatalogFailure);        // 3. dégradation
+  } else {
+    onCatalogFailure(); // file:// — pas d'API joignable
   }
 
   // Retour depuis Stripe : ?paid=<session> (succès) ou ?canceled=1 (abandon).

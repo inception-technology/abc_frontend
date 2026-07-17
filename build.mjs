@@ -1,0 +1,123 @@
+/**
+ * Build de déploiement : injecte le catalogue dans index.html.
+ *
+ * POURQUOI
+ * --------
+ * Aujourd'hui la boutique fait une cascade : HTML -> JS -> fetch API -> rendu.
+ * Le dernier maillon dépend de Railway, qui dort sur le plan gratuit. Un cold
+ * start = « catalogue indisponible » pour le visiteur, et un Googlebot qui ne
+ * voit aucun produit.
+ *
+ * Ce script interroge l'API AU MOMENT DU DÉPLOIEMENT et écrit le résultat dans
+ * index.html. La mosaïque s'affiche alors instantanément, depuis le CDN Vercel,
+ * sans dépendre de Railway.
+ *
+ * LE STOCK N'EST PAS DANS LE SNAPSHOT — enfin, si, mais il n'est PAS DE CONFIANCE
+ * -----------------------------------------------------------------------------
+ * Les pièces sont uniques : `qty` change à chaque vente, pas à chaque déploiement.
+ * Un snapshat figé remontrerait donc des pièces vendues comme disponibles — le
+ * problème exact qui a fait supprimer l'ancien catalogue en dur.
+ *
+ * D'où le partage des rôles, appliqué dans index.html :
+ *   - le snapshot fournit la PRÉSENTATION (noms, images, descriptions, prix) ;
+ *   - l'API fournit la VÉRITÉ du stock.
+ * Tant que l'API n'a pas répondu, la boutique AFFICHE mais ne VEND PAS
+ * (`state.stockTrusted` garde `canAdd()`).
+ *
+ * DÉGRADATION
+ * -----------
+ * Si l'API est injoignable au build, on n'échoue PAS le déploiement : on émet un
+ * catalogue vide et on prévient bruyamment. Le site retombe alors sur son
+ * comportement actuel (fetch au runtime). Bloquer une mise en ligne parce que
+ * Railway dort serait pire que le mal.
+ *
+ * USAGE
+ *   node build.mjs                 # utilise l'URL d'API de index.html
+ *   ABC_API_BASE=... node build.mjs
+ *   node build.mjs --check         # n'écrit rien, affiche ce qui serait injecté
+ */
+
+import { readFile, writeFile } from "node:fs/promises";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+const INDEX = join(HERE, "index.html");
+const TIMEOUT_MS = 20_000;
+
+// Balise cible dans index.html. Le contenu est remplacé à chaque build.
+const MARKER = /(<script id="abc-catalog" type="application\/json">)([\s\S]*?)(<\/script>)/;
+
+const CHECK_ONLY = process.argv.includes("--check");
+
+/** URL de l'API : variable d'env, sinon celle codée dans index.html. */
+function resolveApiBase(html) {
+  const fromEnv = (process.env.ABC_API_BASE || "").trim();
+  const base = fromEnv || (html.match(/window\.ABC_API_BASE\s*=\s*"([^"]*)"/) || [])[1] || "";
+  if (!base) return "";
+  return base.endsWith("/") ? base : base + "/";
+}
+
+async function fetchCatalog(apiBase) {
+  const url = apiBase + "api/products";
+  const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const list = await res.json();
+  if (!Array.isArray(list)) throw new Error("réponse inattendue (pas un tableau)");
+  return list;
+}
+
+/**
+ * Sérialise pour une insertion dans <script>.
+ * `</script>` à l'intérieur d'une chaîne fermerait la balise : on l'échappe.
+ */
+function toEmbeddedJson(list) {
+  return JSON.stringify(list).replace(/<\//g, "<\\/");
+}
+
+function summarize(list) {
+  const inStock = list.filter((p) => (p.qty || 0) > 0).length;
+  return `${list.length} pièces (${inStock} en stock au moment du build)`;
+}
+
+async function main() {
+  let html = await readFile(INDEX, "utf8");
+
+  if (!MARKER.test(html)) {
+    console.error('✗ balise <script id="abc-catalog"> introuvable dans index.html');
+    process.exit(1); // erreur de code, pas d'environnement : on échoue franchement
+  }
+
+  const apiBase = resolveApiBase(html);
+  if (!apiBase) {
+    console.warn("⚠ aucune URL d'API : catalogue laissé vide (fetch au runtime)");
+    return;
+  }
+
+  let list;
+  try {
+    list = await fetchCatalog(apiBase);
+  } catch (e) {
+    // Railway endormi, réseau, 5xx... : on dégrade, on ne bloque pas la mise en ligne.
+    console.warn(`⚠ API injoignable (${e.message}) — catalogue laissé vide.`);
+    console.warn("  Le site retombe sur le fetch au runtime : la mosaïque restera");
+    console.warn("  vide tant que l'API dort. Redéployez quand elle répond.");
+    return;
+  }
+
+  console.log(`  API   : ${apiBase}api/products`);
+  console.log(`  Injecté : ${summarize(list)}`);
+  if (CHECK_ONLY) {
+    console.log("  --check : rien n'a été écrit.");
+    return;
+  }
+
+  html = html.replace(MARKER, (_m, open, _old, close) => open + toEmbeddedJson(list) + close);
+  await writeFile(INDEX, html, "utf8");
+  console.log(`  → index.html mis à jour (${(html.length / 1024).toFixed(1)} Ko)`);
+}
+
+main().catch((e) => {
+  console.error("✗ build:", e);
+  process.exit(1);
+});
