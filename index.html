@@ -6,7 +6,7 @@
 <title>ART BEYOND CONVENIENCE — Mode & culture urbaine</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="/logo.png">
-<script>window.ABC_API_BASE = "https://web-production-62bbe.up.railway.app/";</script>
+<script>window.ABC_API_BASE = "https://api.artbeyondconvenience.com/";</script>
 <!-- Catalogue injecté au déploiement par build.mjs. Vide en dev/local.
      Sert la PRÉSENTATION (affichage instantané, sans attendre l'API).
      Le STOCK de ce snapshot n'est PAS de confiance : il date du dernier
@@ -1449,8 +1449,8 @@
   renderChrome();
   requestAnimationFrame(tick);
 
-  // Live catalogue source. On Vercel, set window.ABC_API_BASE to your Railway
-  // URL (e.g. "https://abc-api.up.railway.app/") so the shop loads live data.
+  // Live catalogue source. On Vercel, set window.ABC_API_BASE to the backend API
+  // URL (e.g. "https://api.artbeyondconvenience.com/") so the shop loads live data.
   var API_BASE = (typeof window !== "undefined" && window.ABC_API_BASE) ? String(window.ABC_API_BASE) : "";
   if (API_BASE && API_BASE.slice(-1) !== "/") API_BASE += "/";
   setGridMsg(CATALOG.length ? null : "loading");
