@@ -1304,7 +1304,11 @@
         if (r.ok) return r.json();
         return r.json().catch(function () { return {}; }).then(function (e) { throw new Error(e.detail || UI[state.lang].payError); });
       }).then(function (d) {
-        if (d && d.url) { window.location.href = d.url; }
+        // replace (et non href) : on REMPLACE l'entrée « boutique » dans
+        // l'historique en partant vers Stripe. Ainsi, après annulation, un
+        // « Précédent » ne ramène pas sur une boutique en état de checkout, et on
+        // n'empile pas d'entrée qui permettrait de rejouer la redirection.
+        if (d && d.url) { window.location.replace(d.url); }
         else { throw new Error(UI[state.lang].payBadResponse); }
       }).catch(function (e) {
         showToast((state.lang === "fr" ? "Paiement indisponible — " : "Payment unavailable — ") + e.message);
