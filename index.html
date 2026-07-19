@@ -240,6 +240,10 @@
   .tile:hover .tile-add { opacity: 1; pointer-events: auto; }
   .tile-add:hover { background: oklch(0.62 0.16 40); color: #fff; }
   .tile-add:active { transform: scale(0.9); }
+  /* Accessibilité : anneau de focus clavier sur les tuiles ; le dialog (conteneur
+     focalisé à l'ouverture) n'a pas besoin d'anneau visible. */
+  .tile:focus-visible { outline: 2px solid oklch(0.62 0.16 40); outline-offset: 3px; }
+  .lb-card:focus { outline: none; }
 
   /* lightbox */
   .lb-scrim {
@@ -896,7 +900,14 @@
       ov.appendChild(num); ov.appendChild(ttl); ov.appendChild(row);
       tile.appendChild(ov);
 
+      // Accessibilité : la tuile est un bouton opérable au clavier.
+      tile.setAttribute("role", "button");
+      tile.setAttribute("tabindex", "0");
+      tile.setAttribute("aria-label", a.title + " — voir la pièce");
       tile.addEventListener("click", function () { openLb(a.i); });
+      tile.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openLb(a.i); }
+      });
 
       grid.appendChild(tile);
       tiles.push(tile);
@@ -1102,10 +1113,12 @@
   // Titre de page par défaut (celui du <head>), restauré à la fermeture d'une pièce.
   var DEFAULT_TITLE = document.title;
   function pieceTitle(a) { return a.title + " — pièce unique upcyclée | ART BEYOND CONVENIENCE"; }
+  var lbReturnFocus = null;   // élément à re-focaliser à la fermeture (accessibilité)
 
   // push=false : ouverture SANS empiler d'entrée d'historique (deep-link à
   // l'arrivée, ou synchronisation sur un événement popstate).
   function openLb(i, push) {
+    if (state.lb == null) lbReturnFocus = document.activeElement;  // déclencheur à restaurer
     state.lb = i;
     state.lbImg = 0;
     document.body.style.overflow = "hidden";
@@ -1115,6 +1128,8 @@
       document.title = pieceTitle(a);
     }
     renderModals();
+    var dlg = modals.querySelector(".lb-card");   // focus entre dans le dialog
+    if (dlg) dlg.focus();
   }
 
   // Ouvre la pièce référencée par l'URL (#piece-<id>) — lien partagé / rechargement.
@@ -1161,6 +1176,10 @@
     }
     document.title = DEFAULT_TITLE;
     renderModals();
+    if (lbReturnFocus && typeof lbReturnFocus.focus === "function") {
+      try { lbReturnFocus.focus(); } catch (e) {}   // rend le focus au déclencheur
+    }
+    lbReturnFocus = null;
   }
   function openCart() {
     state.cartOpen = true;
@@ -1185,6 +1204,10 @@
     var scrim = el("div", "lb-scrim");
     scrim.addEventListener("click", closeLb);
     var card = el("div", "lb-card");
+    card.setAttribute("role", "dialog");
+    card.setAttribute("aria-modal", "true");
+    card.setAttribute("aria-label", a.title + " — pièce unique upcyclée");
+    card.setAttribute("tabindex", "-1");
     card.addEventListener("click", function (e) { e.stopPropagation(); });
 
     var imgs = lbImages(a);
@@ -1193,8 +1216,10 @@
     img.appendChild(carouselImage(a));
     if (imgs.length > 1) {
       var prev = txt("button", "lb-nav prev", "‹"); prev.type = "button";
+      prev.setAttribute("aria-label", state.lang === "fr" ? "Image précédente" : "Previous image");
       prev.addEventListener("click", function (e) { e.stopPropagation(); lbGo(-1); });
       var next = txt("button", "lb-nav next", "›"); next.type = "button";
+      next.setAttribute("aria-label", state.lang === "fr" ? "Image suivante" : "Next image");
       next.addEventListener("click", function (e) { e.stopPropagation(); lbGo(1); });
       var count = txt("div", "lb-count", (state.lbImg + 1) + " / " + imgs.length);
       img.appendChild(prev); img.appendChild(next); img.appendChild(count);
@@ -1492,6 +1517,15 @@
       lbGo(-1);
     } else if (state.lb != null && e.key === "ArrowRight") {
       lbGo(1);
+    } else if (state.lb != null && e.key === "Tab") {
+      // Focus trap : Tab reste à l'intérieur du dialog (pièce ouverte).
+      var dlg = modals.querySelector(".lb-card");
+      if (!dlg) return;
+      var f = dlg.querySelectorAll('button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])');
+      if (!f.length) { e.preventDefault(); dlg.focus(); return; }
+      var first = f[0], last = f[f.length - 1], active = document.activeElement;
+      if (e.shiftKey && (active === first || active === dlg)) { e.preventDefault(); last.focus(); }
+      else if (!e.shiftKey && active === last) { e.preventDefault(); first.focus(); }
     }
   });
   // Bouton Précédent / Suivant : synchronise la lightbox avec l'URL, sans
