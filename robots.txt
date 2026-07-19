@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+
+Disallow: /success
+Disallow: /success.html
+Disallow: /cancel
+Disallow: /cancel.html
+
+Sitemap: https://www.artbeyondconvenience.fr/sitemap.xml
