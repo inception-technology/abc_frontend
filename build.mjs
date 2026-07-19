@@ -197,7 +197,7 @@ const I18N = {
   },
   en: {
     htmlLang: "en", suffix: "one-of-a-kind upcycled piece",
-    color: "Colour", size: "Size", ref: "Ref.",
+    color: "Color", size: "Size", ref: "Ref.",
     available: "Available", soldout: "Sold out", freeShip: "Free shipping",
     unique: "One-of-a-kind", handmade: "Handmade in France",
     buy: "View this piece on the shop", back: "← Back to the shop",
@@ -206,6 +206,27 @@ const I18N = {
     fallbackCat: "Upcycled garment",
   },
 };
+
+// Couleurs saisies en FRANÇAIS dans l'admin : traduites à l'affichage sur les
+// pages EN. Couleur inconnue -> valeur FR conservée (jamais vide).
+// ⚠ Garder synchronisé avec la table homonyme d'index.html (boutique).
+const COLOR_EN = {
+  "beige": "Beige", "blanc": "White", "bleu": "Blue", "bordeaux": "Burgundy",
+  "camouflage": "Camouflage", "cuivré": "Copper", "écru": "Off-white",
+  "gris": "Grey", "gris chiné": "Heather grey", "gris chiné clair": "Light heather grey",
+  "javellisé": "Bleached", "jaune": "Yellow", "jean": "Denim", "kaki": "Khaki",
+  "marron": "Brown", "multicolor": "Multicolor", "multicolore": "Multicolor",
+  "noir": "Black", "orange": "Orange", "rose": "Pink", "rouge": "Red",
+  "tie dye noir": "Black tie-dye", "tie dye rouge": "Red tie-dye",
+  "vert": "Green", "violet": "Purple",
+};
+
+/** Libellé couleur localisé (FR tel quel ; EN via la table, repli FR). */
+function colorLabel(color, lang) {
+  if (!color) return "";
+  if (lang !== "en") return color;
+  return COLOR_EN[String(color).trim().toLowerCase()] || color;
+}
 
 // Pages légales versionnées (URLs propres via cleanUrls) pour le sitemap.
 const LEGAL = [
@@ -260,7 +281,8 @@ function productLdJson(p, canonical, lang) {
   const img = absImage(p.img);
   if (img) data.image = img;
   if (p.ref) data.sku = p.ref;
-  if (p.color) data.color = p.color;
+  const color = colorLabel(p.color, lang);
+  if (color) data.color = color;
   if (p.size) data.size = p.size;
   return JSON.stringify(data).replace(/<\//g, "<\\/");
 }
@@ -276,13 +298,14 @@ function productPageHtml(p, lang, slugStr) {
   const metaDesc = (desc || `${p.name} — ${L.suffix}. ${L.metaTail}`).replace(/\s+/g, " ").slice(0, 160);
   const price = Number(p.price || 0).toFixed(2);
   const inStock = Number(p.qty) > 0;
+  const color = colorLabel(p.color, lang);
   const specs = [
-    p.color ? `${L.color} · ${escHtml(p.color)}` : "",
+    color ? `${L.color} · ${escHtml(color)}` : "",
     p.size ? `${L.size} · ${escHtml(p.size)}` : "",
     p.ref ? `${L.ref} ${escHtml(p.ref)}` : "",
   ].filter(Boolean);
   const alt = `${escHtml(p.name)} — ${escHtml(catLabel.toLowerCase())}, ${L.suffix}`
-    + (p.color ? `, ${escHtml(p.color)}` : "");
+    + (color ? `, ${escHtml(color)}` : "");
   return `<!doctype html>
 <html lang="${L.htmlLang}">
 <head>

@@ -560,6 +560,26 @@
     en: { tshirt: "T-shirt", sweater: "Sweater", jacket: "Jacket" },
   };
 
+  // Les couleurs sont saisies en FRANÇAIS dans l'admin (référentiel Couleurs) :
+  // en version anglaise, on les traduit à l'affichage. Une couleur absente de la
+  // table retombe sur la valeur FR — dégradé mais jamais vide.
+  // ⚠ Garder synchronisé avec la table homonyme de build.mjs (pages produit EN).
+  var COLOR_EN = {
+    "beige": "Beige", "blanc": "White", "bleu": "Blue", "bordeaux": "Burgundy",
+    "camouflage": "Camouflage", "cuivré": "Copper", "écru": "Off-white",
+    "gris": "Grey", "gris chiné": "Heather grey", "gris chiné clair": "Light heather grey",
+    "javellisé": "Bleached", "jaune": "Yellow", "jean": "Denim", "kaki": "Khaki",
+    "marron": "Brown", "multicolor": "Multicolor", "multicolore": "Multicolor",
+    "noir": "Black", "orange": "Orange", "rose": "Pink", "rouge": "Red",
+    "tie dye noir": "Black tie-dye", "tie dye rouge": "Red tie-dye",
+    "vert": "Green", "violet": "Purple",
+  };
+  function colorLabel(color, lang) {
+    if (!color) return "";
+    if (lang !== "en") return color;
+    return COLOR_EN[String(color).trim().toLowerCase()] || color;
+  }
+
   // ---------------------------------------------------------------------------
   // State
   // ---------------------------------------------------------------------------
@@ -1257,7 +1277,7 @@
 
     // spec line: colour · size · ref
     var specs = [];
-    if (a.color) specs.push(ui.color + " " + a.color);
+    if (a.color) specs.push(ui.color + " " + colorLabel(a.color, state.lang));
     if (a.size) specs.push(ui.size + " " + a.size);
     if (a.ref) specs.push(ui.ref + " " + a.ref);
     if (specs.length) {
