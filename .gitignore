@@ -4,6 +4,12 @@
 # Contenu privé : les images produits sont servies depuis Cloudflare R2, pas depuis ce repo public
 img/
 
+# Pages produit statiques : générées au build (build.mjs) depuis l'API, jamais
+# versionnées. Le sitemap.xml committé est une base (accueil + pages légales) ;
+# build.mjs le régénère complet (avec les pages produit) au déploiement.
+/piece/
+/en/
+
 # Python (dev-server.py)
 __pycache__/
 *.pyc
