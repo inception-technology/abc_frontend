@@ -122,7 +122,9 @@
   .brandwrap { display: flex; align-items: center; gap: 10px; }
   .logo-chip { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 7px; background: #fff; padding: 4px; display: grid; place-items: center; }
   .logo-chip img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.05em; line-height: 1.05; white-space: nowrap; }
+  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.05em; line-height: 1.05; white-space: nowrap; margin: 0; }
+  /* Contenu réservé aux lecteurs d'écran / moteurs : hors flux, invisible à l'œil. */
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
   .tagline { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.85; margin-top: 5px; white-space: nowrap; }
   @media (max-width: 480px) {
     .brand { font-size: 12px; letter-spacing: 0.03em; }
@@ -347,7 +349,7 @@
     padding: 64px 26px 72px;
   }
   .foot-inner { max-width: 680px; margin: 0 auto; text-align: center; }
-  .foot-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(30px, 6vw, 52px); line-height: 0.95; letter-spacing: -0.01em; }
+  .foot-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(30px, 6vw, 52px); line-height: 0.95; letter-spacing: -0.01em; margin: 0; }
   .about { margin-top: 26px; font-size: 13px; line-height: 1.85; opacity: 0.82; }
   .about p { margin: 0 0 14px; text-align: center; }
   .about p:last-child { margin-bottom: 0; }
@@ -385,8 +387,8 @@
     <div class="brandwrap">
       <span class="logo-chip"><img src="/logo.png" alt="ART BEYOND CONVENIENCE" width="34" height="34"></span>
       <div>
-        <div class="brand">ART BEYOND CONVENIENCE</div>
-        <div class="tagline" id="tagline"></div>
+        <h1 class="brand">ART BEYOND CONVENIENCE<span class="sr-only"> — vêtements upcyclés en pièces uniques, faits main en France</span></h1>
+        <div class="tagline" id="tagline">Mode &amp; culture urbaine</div>
       </div>
     </div>
   </div>
@@ -430,8 +432,8 @@
 
 <footer class="foot">
   <div class="foot-inner">
-    <div class="foot-title" id="footTitle"></div>
-    <div class="about" id="aboutText"></div>
+    <h2 class="foot-title" id="footTitle">À propos</h2>
+    <div class="about" id="aboutText"><p>Chaque création est une œuvre unique.</p><p>Conçue et réalisée à la main, elle associe des pièces neuves et des objets existants, minutieusement sélectionnés puis réinterprétés. Chaque matière est choisie pour son histoire, sa texture et sa capacité à dialoguer avec l'ensemble.</p><p>Imaginer, déconstruire, remodeler, assembler. Le geste est lent, précis, presque méditatif. Chaque œuvre naît d'un équilibre entre mémoire, détournement et création contemporaine.</p><p>Split développe depuis toujours une démarche où l'écriture et les arts plastiques se répondent. Auteur de textes depuis l'adolescence, influencé par le cinéma romantique des années 90, la chanson française à texte et l'esthétique du rap, il transpose cette même sensibilité dans ses œuvres. Chaque création est pensée comme un récit silencieux, où les objets deviennent langage et où la matière prolonge les mots.</p><p>L'œuvre n'a pas vocation à faire consensus. Elle invite à ralentir, à observer et à interroger le regard que nous portons sur les objets, leur valeur et leur fonction.</p><p>Art Beyond Convenience.</p><p><em>Nota bene : Conformément au Code de la propriété intellectuelle, certaines créations peuvent intégrer des œuvres préexistantes dans une démarche de parodie, de pastiche ou de caricature. Elles relèvent de la liberté d'expression artistique et participent à une réflexion critique sur les images, les objets et la culture contemporaine.</em></p></div>
     <div class="socials" id="socialsNav" aria-label="Réseaux sociaux">
       <a href="https://www.tiktok.com/@split_the_lyricist" target="_blank" rel="noopener" title="TikTok" aria-label="TikTok">
         <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.31 2.05 1.53 3.4 3.5 3.6v2.45c-1.28.12-2.5-.28-3.62-1.02v5.72c0 3.35-2.4 5.75-5.56 5.75-3.02 0-5.32-2.3-5.32-5.3 0-3.2 2.62-5.5 6-5.13v2.63c-.42-.13-.86-.2-1.3-.2-1.4 0-2.4 1.02-2.4 2.4 0 1.4 1 2.47 2.42 2.47 1.5 0 2.48-1.12 2.48-2.82V3h3.42z"/></svg>
