@@ -80,6 +80,10 @@
      déploiement, alors que qty change à chaque vente. La boutique n'autorise
      l'ajout au panier qu'une fois l'API confirmée (state.stockTrusted). -->
 <script id="abc-catalog" type="application/json">[]</script>
+<!-- Données structurées du catalogue (ItemList Product/Offer), injectées au
+     déploiement par build.mjs depuis la même source que le snapshot ci-dessus.
+     availability et prix reflètent l'état du build ; vide en dev/local. -->
+<script id="abc-itemlist" type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"Pièces uniques — ART BEYOND CONVENIENCE","itemListElement":[]}</script>
 <!-- Vercel Web Analytics + Speed Insights (site statique) -->
 <script defer src="/_vercel/insights/script.js"></script>
 <script defer src="/_vercel/speed-insights/script.js"></script>
