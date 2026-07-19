@@ -48,6 +48,15 @@ const TIMEOUT_MS = 20_000;
 // Balise cible dans index.html. Le contenu est remplacé à chaque build.
 const MARKER = /(<script id="abc-catalog" type="application\/json">)([\s\S]*?)(<\/script>)/;
 
+// Balise ItemList JSON-LD (données structurées du catalogue), même mécanique.
+const ITEMLIST_MARKER = /(<script id="abc-itemlist" type="application\/ld\+json">)([\s\S]*?)(<\/script>)/;
+
+// Domaine canonique du site : @id / URL / images relatives des données structurées.
+const SITE = "https://www.artbeyondconvenience.fr";
+
+// Libellés catégorie pour les données structurées (codes internes -> FR lisible).
+const CAT_LABEL = { tshirt: "T-shirt upcyclé", sweater: "Sweat upcyclé", jacket: "Veste upcyclée" };
+
 const CHECK_ONLY = process.argv.includes("--check");
 
 /** URL de l'API : variable d'env, sinon celle codée dans index.html. */
@@ -80,6 +89,58 @@ function summarize(list) {
   return `${list.length} pièces (${inStock} en stock au moment du build)`;
 }
 
+/** URL absolue d'une image produit (R2 déjà absolu ; nom relatif -> /img/). */
+function absImage(img) {
+  const v = (img || "").trim();
+  if (!v) return "";
+  return /^https?:\/\//.test(v) ? v : `${SITE}/img/${v}`;
+}
+
+/**
+ * Données structurées ItemList (Product + Offer) du catalogue, sérialisées pour
+ * <script>. `availability` reflète le stock du build (règle Google Merchant :
+ * ne pas déclarer InStock une pièce à qty:0). Prix en chaîne "xx.xx".
+ */
+function toItemListJson(list) {
+  const items = list.map((p, i) => {
+    const id = `${SITE}/#piece-${p.id}`;
+    const product = {
+      "@type": "Product",
+      "@id": id,
+      name: p.name,
+      brand: { "@type": "Brand", name: "ART BEYOND CONVENIENCE" },
+      offers: {
+        "@type": "Offer",
+        url: id,
+        price: Number(p.price || 0).toFixed(2),
+        priceCurrency: "EUR",
+        availability: Number(p.qty) > 0
+          ? "https://schema.org/InStock"
+          : "https://schema.org/OutOfStock",
+        itemCondition: "https://schema.org/NewCondition",
+        seller: { "@id": `${SITE}/#organization` },
+      },
+    };
+    const desc = (p.descFr || "").trim();
+    if (desc) product.description = desc.slice(0, 320);
+    const img = absImage(p.img);
+    if (img) product.image = img;
+    if (p.ref) product.sku = p.ref;
+    if (p.color) product.color = p.color;
+    if (p.size) product.size = p.size;
+    if (p.cat && CAT_LABEL[p.cat]) product.category = CAT_LABEL[p.cat];
+    return { "@type": "ListItem", position: i + 1, item: product };
+  });
+  const data = {
+    "@context": "https://schema.org",
+    "@type": "ItemList",
+    name: "Pièces uniques — ART BEYOND CONVENIENCE",
+    numberOfItems: items.length,
+    itemListElement: items,
+  };
+  return JSON.stringify(data).replace(/<\//g, "<\\/");
+}
+
 async function main() {
   let html = await readFile(INDEX, "utf8");
 
@@ -107,12 +168,17 @@ async function main() {
 
   console.log(`  API   : ${apiBase}api/products`);
   console.log(`  Injecté : ${summarize(list)}`);
+  const hasItemList = ITEMLIST_MARKER.test(html);
+  console.log(`  ItemList : ${hasItemList ? `${list.length} produit(s) en JSON-LD` : "balise absente — ignorée"}`);
   if (CHECK_ONLY) {
     console.log("  --check : rien n'a été écrit.");
     return;
   }
 
   html = html.replace(MARKER, (_m, open, _old, close) => open + toEmbeddedJson(list) + close);
+  if (hasItemList) {
+    html = html.replace(ITEMLIST_MARKER, (_m, open, _old, close) => open + toItemListJson(list) + close);
+  }
   await writeFile(INDEX, html, "utf8");
   console.log(`  → index.html mis à jour (${(html.length / 1024).toFixed(1)} Ko)`);
 }
