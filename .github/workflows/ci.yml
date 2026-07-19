@@ -1,0 +1,35 @@
+name: CI
+
+# Boutique vanilla (aucun build de bundler). On vérifie deux choses à chaque
+# push sur main et sur chaque PR :
+#   1. le JS inline des pages compile (un typo casserait la page en prod) ;
+#   2. l'injection du catalogue au déploiement reste opérante (build.mjs --check).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    name: Build & JS checks
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Syntaxe du JS inline (index / success / cancel)
+        run: node scripts/check-html-js.mjs
+
+      - name: Injection du catalogue (build.mjs --check)
+        # --check n'écrit rien. Il ÉCHOUE si la balise <script id="abc-catalog">
+        # disparaît d'index.html ; il TOLÈRE une API injoignable (dégradation
+        # documentée), donc le job ne dépend pas de la disponibilité de Railway.
+        run: node build.mjs --check
