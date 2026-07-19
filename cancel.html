@@ -64,7 +64,11 @@
     document.title = t.title + " — ART BEYOND CONVENIENCE";
     document.getElementById("title").textContent = t.title;
     document.getElementById("msg").textContent = t.msg;
-    document.getElementById("retry").textContent = t.retry;
+    var retry = document.getElementById("retry");
+    retry.textContent = t.retry;
+    // Retour en REPLACE : cette page d'annulation ne reste pas dans l'historique,
+    // pour ne pas y revenir (ni vers la page Stripe expirée) via « Précédent ».
+    retry.addEventListener("click", function (e) { e.preventDefault(); location.replace("/"); });
   })();
 </script>
 </body>

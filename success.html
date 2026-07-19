@@ -65,7 +65,11 @@
     document.title = t.title + " — ART BEYOND CONVENIENCE";
     document.getElementById("title").textContent = t.title;
     document.getElementById("msg").textContent = t.msg;
-    document.getElementById("back").textContent = t.back;
+    var back = document.getElementById("back");
+    back.textContent = t.back;
+    // Retour en REPLACE : après un paiement réussi, « Précédent » ne doit pas
+    // ramener sur cette page ni vers Stripe (et le panier est déjà vidé ci-dessus).
+    back.addEventListener("click", function (e) { e.preventDefault(); location.replace("/"); });
 
     try {
       var sid = new URLSearchParams(location.search).get("session_id") || "";
