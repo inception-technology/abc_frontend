@@ -51,6 +51,9 @@ const MARKER = /(<script id="abc-catalog" type="application\/json">)([\s\S]*?)(<
 // Balise ItemList JSON-LD (données structurées du catalogue), même mécanique.
 const ITEMLIST_MARKER = /(<script id="abc-itemlist" type="application\/ld\+json">)([\s\S]*?)(<\/script>)/;
 
+// Balise du catalogue prérendu (contenu HTML crawlable), même mécanique.
+const PRERENDER_MARKER = /(<noscript id="abc-prerender">)([\s\S]*?)(<\/noscript>)/;
+
 // Domaine canonique du site : @id / URL / images relatives des données structurées.
 const SITE = "https://www.artbeyondconvenience.fr";
 
@@ -141,6 +144,43 @@ function toItemListJson(list) {
   return JSON.stringify(data).replace(/<\//g, "<\\/");
 }
 
+/** Échappe une valeur pour insertion dans du HTML (texte ou attribut). */
+function escHtml(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/**
+ * Fragment HTML crawlable du catalogue (nom, image + alt descriptif, desc, prix,
+ * dispo). Placé dans un <noscript> : lu par tous les crawlers (dont ceux sans
+ * rendu JS), invisible pour l'utilisateur JS. Contenu identique à la mosaïque.
+ */
+function toPrerenderHtml(list) {
+  const cards = list.map((p) => {
+    const cat = (CAT_LABEL[p.cat] || "vêtement upcyclé").toLowerCase();
+    const img = absImage(p.img);
+    const price = Number(p.price || 0).toFixed(2);
+    const dispo = Number(p.qty) > 0 ? "Disponible" : "Épuisé";
+    const alt = `${p.name} — ${cat} pièce unique`
+      + (p.color ? `, ${p.color}` : "") + (p.size ? `, taille ${p.size}` : "");
+    const specs = [
+      p.color ? `Couleur : ${escHtml(p.color)}` : "",
+      p.size ? `Taille : ${escHtml(p.size)}` : "",
+      p.ref ? `Réf. ${escHtml(p.ref)}` : "",
+    ].filter(Boolean).join(" · ");
+    return `<article id="piece-${escHtml(p.id)}">`
+      + `<h3>${escHtml(p.name)} — ${escHtml(cat)}, pièce unique</h3>`
+      + (img ? `<img src="${escHtml(img)}" alt="${escHtml(alt)}" width="600" height="600" loading="lazy">` : "")
+      + (p.descFr ? `<p>${escHtml(p.descFr)}</p>` : "")
+      + (specs ? `<p>${specs}</p>` : "")
+      + `<p>${price} € — ${dispo}</p>`
+      + `</article>`;
+  }).join("");
+  return `<section aria-label="Catalogue des pièces uniques">`
+    + `<h2>Pièces uniques upcyclées — le catalogue</h2>${cards}</section>`;
+}
+
 async function main() {
   let html = await readFile(INDEX, "utf8");
 
@@ -169,7 +209,9 @@ async function main() {
   console.log(`  API   : ${apiBase}api/products`);
   console.log(`  Injecté : ${summarize(list)}`);
   const hasItemList = ITEMLIST_MARKER.test(html);
+  const hasPrerender = PRERENDER_MARKER.test(html);
   console.log(`  ItemList : ${hasItemList ? `${list.length} produit(s) en JSON-LD` : "balise absente — ignorée"}`);
+  console.log(`  Prerender : ${hasPrerender ? `${list.length} pièce(s) en HTML crawlable` : "balise absente — ignorée"}`);
   if (CHECK_ONLY) {
     console.log("  --check : rien n'a été écrit.");
     return;
@@ -178,6 +220,9 @@ async function main() {
   html = html.replace(MARKER, (_m, open, _old, close) => open + toEmbeddedJson(list) + close);
   if (hasItemList) {
     html = html.replace(ITEMLIST_MARKER, (_m, open, _old, close) => open + toItemListJson(list) + close);
+  }
+  if (hasPrerender) {
+    html = html.replace(PRERENDER_MARKER, (_m, open, _old, close) => open + toPrerenderHtml(list) + close);
   }
   await writeFile(INDEX, html, "utf8");
   console.log(`  → index.html mis à jour (${(html.length / 1024).toFixed(1)} Ko)`);

@@ -434,6 +434,12 @@
   </div>
 </section>
 
+<!-- Catalogue prérendu, crawlable par TOUS les moteurs (y compris ceux sans JS :
+     GPTBot, ClaudeBot, réseaux sociaux). Rempli au build par build.mjs depuis la
+     même source que la mosaïque ; vide en dev/local. Dans <noscript> : contenu de
+     repli identique à ce que voit l'utilisateur JS (usage légitime, pas de cloaking). -->
+<noscript id="abc-prerender"></noscript>
+
 <footer class="foot">
   <div class="foot-inner">
     <h2 class="foot-title" id="footTitle">À propos</h2>
@@ -1093,11 +1099,31 @@
     updateCartCount();
   }
 
-  function openLb(i) {
+  // Titre de page par défaut (celui du <head>), restauré à la fermeture d'une pièce.
+  var DEFAULT_TITLE = document.title;
+  function pieceTitle(a) { return a.title + " — pièce unique upcyclée | ART BEYOND CONVENIENCE"; }
+
+  // push=false : ouverture SANS empiler d'entrée d'historique (deep-link à
+  // l'arrivée, ou synchronisation sur un événement popstate).
+  function openLb(i, push) {
     state.lb = i;
     state.lbImg = 0;
     document.body.style.overflow = "hidden";
+    var a = articles[i];
+    if (a) {
+      if (push !== false) history.pushState({ piece: a.id }, "", "#piece-" + a.id);
+      document.title = pieceTitle(a);
+    }
     renderModals();
+  }
+
+  // Ouvre la pièce référencée par l'URL (#piece-<id>) — lien partagé / rechargement.
+  function openFromHash() {
+    var m = location.hash.match(/^#piece-(.+)$/);
+    if (!m || state.lb != null) return;
+    var wanted = decodeURIComponent(m[1]);
+    var idx = articles.findIndex(function (a) { return String(a.id) === wanted; });
+    if (idx >= 0) openLb(idx, false);
   }
 
   // Show a specific carousel image and sync image / dots / thumbs / counter.
@@ -1125,9 +1151,15 @@
     if (lbImages(articles[state.lb]).length < 2) return;
     lbSetImg((state.lbImg || 0) + delta);
   }
-  function closeLb() {
+  // fromPop=true : fermeture déclenchée par un popstate (URL déjà à jour), on
+  // n'empile alors aucune entrée d'historique.
+  function closeLb(fromPop) {
     state.lb = null;
     if (!state.cartOpen) document.body.style.overflow = "";
+    if (fromPop !== true && /^#piece-/.test(location.hash)) {
+      history.pushState({}, "", location.pathname + location.search);
+    }
+    document.title = DEFAULT_TITLE;
     renderModals();
   }
   function openCart() {
@@ -1462,6 +1494,18 @@
       lbGo(1);
     }
   });
+  // Bouton Précédent / Suivant : synchronise la lightbox avec l'URL, sans
+  // empiler d'entrée (openLb/closeLb appelés en mode « pop »).
+  window.addEventListener("popstate", function () {
+    var m = location.hash.match(/^#piece-(.+)$/);
+    if (m) {
+      var wanted = decodeURIComponent(m[1]);
+      var idx = articles.findIndex(function (a) { return String(a.id) === wanted; });
+      if (idx >= 0) { openLb(idx, false); return; }
+    }
+    if (state.lb != null) closeLb(true);
+  });
+
   var lastCols = mobileCols();
   window.addEventListener("resize", function () {
     var c = mobileCols();
@@ -1524,6 +1568,7 @@
 
   applyCatalog(embeddedCatalog());   // 1. snapshot : affichage immédiat
   renderChrome();
+  openFromHash();                    // ouvre la pièce si l'URL est un lien profond
   requestAnimationFrame(tick);
 
   // Live catalogue source. On Vercel, set window.ABC_API_BASE to the backend API
@@ -1549,6 +1594,7 @@
         state.stockTrusted = true;
         applyCatalog(list);            // l'API fait foi -> la vente s'ouvre
         renderChrome();
+        openFromHash();                // pièce deep-linkée absente du snapshot
         setGridMsg(null);
       })
       .catch(onCatalogFailure);        // 3. dégradation
