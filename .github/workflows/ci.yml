@@ -29,7 +29,12 @@ jobs:
         run: node scripts/check-html-js.mjs
 
       - name: Injection du catalogue (build.mjs --check)
-        # --check n'écrit rien. Il ÉCHOUE si la balise <script id="abc-catalog">
-        # disparaît d'index.html ; il TOLÈRE une API injoignable (dégradation
-        # documentée), donc le job ne dépend pas de la disponibilité de Railway.
+        # --check n'écrit rien et ne publie rien : il vérifie le CODE. Il ÉCHOUE
+        # si la balise <script id="abc-catalog"> disparaît d'index.html ; il
+        # TOLÈRE une API injoignable, pour que le job ne dépende pas de la
+        # disponibilité de Railway.
+        # ⚠ Le build de DÉPLOIEMENT, lui, échoue si l'API ne répond pas — sans
+        # quoi Vercel publierait un site sans catalogue prérendu, sans page
+        # produit et au sitemap tronqué, en paraissant vert. Cette asymétrie est
+        # voulue : ici on teste, là-bas on met en ligne.
         run: node build.mjs --check

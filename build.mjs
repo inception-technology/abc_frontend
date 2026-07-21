@@ -63,6 +63,17 @@ const CAT_LABEL = { tshirt: "T-shirt upcyclé", sweater: "Sweat upcyclé", jacke
 
 const CHECK_ONLY = process.argv.includes("--check");
 
+//: Échappatoire explicite pour publier SANS le catalogue (voir `main`). Doit
+//: rester un geste conscient : c'est un site sans contenu indexable.
+const ALLOW_EMPTY = process.env.ABC_ALLOW_EMPTY_CATALOG === "1";
+
+//: L'API est réveillée par le build lui-même et peut être en cours de
+//: redéploiement (Railway redéploie sur push, comme Vercel). Une seule
+//: tentative transforme une fenêtre de quelques secondes en site vide : on
+//: réessaie avant de conclure quoi que ce soit.
+const FETCH_ATTEMPTS = 3;
+const RETRY_DELAYS_MS = [3_000, 8_000];
+
 /** URL de l'API : variable d'env, sinon celle codée dans index.html. */
 function resolveApiBase(html) {
   const fromEnv = (process.env.ABC_API_BASE || "").trim();
@@ -71,13 +82,40 @@ function resolveApiBase(html) {
   return base.endsWith("/") ? base : base + "/";
 }
 
-async function fetchCatalog(apiBase) {
+async function fetchCatalogOnce(apiBase) {
   const url = apiBase + "api/products";
   const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
   if (!res.ok) throw new Error(`HTTP ${res.status}`);
   const list = await res.json();
   if (!Array.isArray(list)) throw new Error("réponse inattendue (pas un tableau)");
   return list;
+}
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+/**
+ * Récupère le catalogue, avec quelques tentatives espacées.
+ *
+ * Le cas visé n'est pas une API morte mais une API qui redémarre : pousser le
+ * backend et le front à quelques minutes d'intervalle suffit à faire tomber le
+ * build dans la fenêtre de redéploiement. C'est ce qui s'est produit le
+ * 2026-07-20 — le site est resté en ligne, mais sans une seule URL indexable.
+ */
+async function fetchCatalog(apiBase) {
+  let derniere;
+  for (let essai = 1; essai <= FETCH_ATTEMPTS; essai++) {
+    try {
+      return await fetchCatalogOnce(apiBase);
+    } catch (e) {
+      derniere = e;
+      const delai = RETRY_DELAYS_MS[essai - 1];
+      if (delai === undefined) break;
+      console.warn(`  ⚠ tentative ${essai}/${FETCH_ATTEMPTS} échouée (${e.message})`
+                   + ` — nouvel essai dans ${delai / 1000}s`);
+      await sleep(delai);
+    }
+  }
+  throw derniere;
 }
 
 /**
@@ -403,6 +441,53 @@ async function writeProductPages(list) {
   await writeFile(SITEMAP, sitemapXml(list, slugs), "utf8");
 }
 
+/**
+ * Catalogue inaccessible : on ÉCHOUE, sauf autorisation explicite.
+ *
+ * Ce build dégradait en silence — avertissement dans les logs, déploiement
+ * vert, et un site sans catalogue prérendu, sans page produit et avec un
+ * sitemap réduit aux pages légales. Le 2026-07-20, un déploiement du front
+ * lancé pendant un redéploiement du backend a ainsi retiré **34 URLs
+ * indexables** sans que rien ne le signale : la boutique restait fonctionnelle
+ * pour un visiteur (le catalogue est récupéré au runtime), donc invisible à
+ * l'œil, mais vide pour un moteur de recherche.
+ *
+ * Un déploiement bloqué se voit et se relance en un clic ; une éclipse SEO ne
+ * se voit pas et dure jusqu'au prochain build. L'échec est le moindre mal.
+ *
+ * `ABC_ALLOW_EMPTY_CATALOG=1` reste la sortie de secours pour livrer un
+ * correctif front pendant que l'API est indisponible — geste conscient, tracé
+ * dans les logs.
+ */
+function abandonner(raison) {
+  if (CHECK_ONLY) {
+    // `--check` tourne en CI pour vérifier le CODE (balises présentes, script
+    // exécutable), pas la production. Le faire dépendre de la disponibilité de
+    // Railway ferait échouer des PR sans rapport — y compris celles qui ne
+    // touchent pas au catalogue. On tolère donc ici, et seulement ici : ce
+    // chemin n'écrit rien et ne publie rien.
+    console.warn(`⚠ ${raison}`);
+    console.warn("  --check : toléré, ce mode ne publie pas. Un vrai build");
+    console.warn("  échouerait ici.");
+    return;
+  }
+  if (ALLOW_EMPTY) {
+    console.warn(`⚠ ${raison}`);
+    console.warn("  ABC_ALLOW_EMPTY_CATALOG=1 : on publie SANS catalogue.");
+    console.warn("  Le site n'aura ni page produit, ni sitemap complet, ni");
+    console.warn("  contenu crawlable. Redéployez dès que l'API répond.");
+    return;
+  }
+  console.error(`✗ ${raison}`);
+  console.error("  Build interrompu : publier maintenant retirerait le catalogue");
+  console.error("  prérendu, les pages produit et le sitemap complet — sans que");
+  console.error("  le site paraisse cassé, puisque le catalogue est aussi");
+  console.error("  récupéré au runtime. Le déploiement précédent reste en ligne.");
+  console.error("  Vérifiez l'API, puis relancez le déploiement.");
+  console.error("  Pour publier malgré tout : ABC_ALLOW_EMPTY_CATALOG=1");
+  process.exit(1);
+}
+
 async function main() {
   let html = await readFile(INDEX, "utf8");
 
@@ -413,7 +498,7 @@ async function main() {
 
   const apiBase = resolveApiBase(html);
   if (!apiBase) {
-    console.warn("⚠ aucune URL d'API : catalogue laissé vide (fetch au runtime)");
+    abandonner("aucune URL d'API résolue (ABC_API_BASE ou window.ABC_API_BASE)");
     return;
   }
 
@@ -421,15 +506,21 @@ async function main() {
   try {
     list = await fetchCatalog(apiBase);
   } catch (e) {
-    // Railway endormi, réseau, 5xx... : on dégrade, on ne bloque pas la mise en ligne.
-    console.warn(`⚠ API injoignable (${e.message}) — catalogue laissé vide.`);
-    console.warn("  Le site retombe sur le fetch au runtime : la mosaïque restera");
-    console.warn("  vide tant que l'API dort. Redéployez quand elle répond.");
+    abandonner(`API injoignable après ${FETCH_ATTEMPTS} tentatives (${e.message})`);
     return;
   }
 
   console.log(`  API   : ${apiBase}api/products`);
   console.log(`  Injecté : ${summarize(list)}`);
+  if (list.length === 0) {
+    // À distinguer d'une API injoignable : ici elle a répondu, et sa réponse
+    // est un catalogue vide. Depuis que tout article naît brouillon, c'est un
+    // état légitime — mais qui produit un site sans contenu indexable, donc on
+    // le dit franchement au lieu de le glisser dans le résumé.
+    console.warn("  ⚠ l'API répond, mais AUCUNE pièce n'est publiée.");
+    console.warn("    Le site sera en ligne sans catalogue ni page produit.");
+    console.warn("    Publiez au moins une pièce depuis /admin, puis redéployez.");
+  }
   const hasItemList = ITEMLIST_MARKER.test(html);
   const hasPrerender = PRERENDER_MARKER.test(html);
   console.log(`  ItemList : ${hasItemList ? `${list.length} produit(s) en JSON-LD` : "balise absente — ignorée"}`);
