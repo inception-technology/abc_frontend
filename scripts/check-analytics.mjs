@@ -43,20 +43,19 @@ check("jeton valide -> jeton présent dans data-cf-beacon",
 check("balise différée (defer), pour ne pas retarder le rendu",
   /\bdefer\b/.test(tag));
 
-// Une valeur qui n'a pas la forme d'un jeton doit être REFUSÉE, pas insérée :
-// c'est la garde contre une injection dans l'attribut / le HTML. Ces cas
-// déclenchent volontairement l'avertissement de beaconTag ; on le fait taire le
-// temps du test pour ne pas polluer la sortie de la CI.
-const warnOrig = console.warn;
-console.warn = () => {};
-try {
-  check("jeton trop court refusé", beaconTag("abc") === "");
-  check("jeton non hexadécimal refusé", beaconTag("z".repeat(32)) === "");
-  check("tentative d'injection refusée",
-    beaconTag(`x"}'></script><script>alert(1)</script>`) === "");
-} finally {
-  console.warn = warnOrig;
-}
+// La garde n'impose PAS un format hexa (les jetons Cloudflare peuvent varier) :
+// elle accepte tout jeton SANS DANGER pour l'attribut et refuse le reste.
+// Accepté : alphanumérique + `-`/`_`, 8 à 128 caractères.
+check("jeton alphanumérique non hexa accepté",
+  beaconTag("Zk9_pQ-42abcXYZ") !== "");
+// Refusé : trop court, et surtout tout ce qui pourrait casser l'attribut
+// `data-cf-beacon='{"token":"…"}'` ou injecter du HTML (guillemets, chevrons,
+// accolades, espaces).
+check("jeton trop court refusé", beaconTag("abc") === "");
+check("jeton avec espace refusé", beaconTag("ab cd ef gh ij kl") === "");
+check("jeton avec guillemet refusé", beaconTag('abcd"efgh"ijkl') === "");
+check("tentative d'injection refusée",
+  beaconTag(`x"}'></script><script>alert(1)</script>`) === "");
 
 // --------------------------------------------------------------------------- #
 // withBeacon — pose, idempotence, réversibilité

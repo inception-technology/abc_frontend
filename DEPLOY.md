@@ -38,10 +38,15 @@ posée**. Pour l'activer :
 
 1. Cloudflare → **Web Analytics** → *Add a site* → hôte
    `www.artbeyondconvenience.fr`.
-2. Copier le **jeton** (32 caractères hexa) du snippet affiché — **ne pas coller
-   le snippet**, `build.mjs` s'en charge avec les bons réglages de CSP.
+2. Dans le snippet affiché — `<script ... data-cf-beacon='{"token":"XXXX"}'>` —
+   copier **uniquement la valeur `XXXX` entre les guillemets** (le jeton nu) :
+   **ni le `<script>` complet, ni les guillemets, ni le `{"token":…}`**.
+   `build.mjs` construit la balise avec les bons réglages de CSP.
 3. Vercel → projet → *Settings → Environment Variables* → `CF_ANALYTICS_TOKEN` =
-   le jeton, sur *Production*.
+   le jeton nu, sur *Production*. Puis redéployer.
+   *(Le build rejette une valeur contenant guillemets, espaces ou chevrons — une
+   garde anti-injection — et le log de build le signale : « CF_ANALYTICS_TOKEN
+   posé mais REJETÉ ».)*
 4. Redéployer (push ou `vercel --prod`).
 
 Le beacon est alors posé sur toutes les pages. Cookieless, sans bandeau de
