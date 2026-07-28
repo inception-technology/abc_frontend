@@ -84,387 +84,391 @@
      déploiement par build.mjs depuis la même source que le snapshot ci-dessus.
      availability et prix reflètent l'état du build ; vide en dev/local. -->
 <script id="abc-itemlist" type="application/ld+json">{"@context":"https://schema.org","@type":"ItemList","name":"Pièces uniques — ART BEYOND CONVENIENCE","itemListElement":[]}</script>
-<!-- Vercel Web Analytics + Speed Insights (site statique) -->
-<script defer src="/_vercel/insights/script.js"></script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
 <style>
-  /* Polices auto-hébergées (RGPD : aucune requête vers Google Fonts —
-     charger depuis fonts.googleapis.com transmettait l'IP de chaque
-     visiteur à Google sans consentement). Fichiers : /fonts/. */
-  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/syne-latin-500-normal.woff2') format('woff2'); }
-  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/syne-latin-600-normal.woff2') format('woff2'); }
-  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/syne-latin-700-normal.woff2') format('woff2'); }
-  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fonts/syne-latin-800-normal.woff2') format('woff2'); }
+  /* Polices auto-hébergées (RGPD : AUCUNE requête vers un CDN de polices tiers —
+     un tel chargement transmettrait l'IP de chaque visiteur à Google sans
+     consentement). Fichiers : /fonts/. Bricolage Grotesque (display),
+     Space Grotesk (corps), Space Mono (mono). */
+  @font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/bricolage-grotesque-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 600; font-display: swap; src: url('/fonts/bricolage-grotesque-latin-600-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/bricolage-grotesque-latin-700-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fonts/bricolage-grotesque-latin-800-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/space-grotesk-latin-400-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 500; font-display: swap; src: url('/fonts/space-grotesk-latin-500-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/space-grotesk-latin-700-normal.woff2') format('woff2'); }
   @font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/space-mono-latin-400-normal.woff2') format('woff2'); }
   @font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/space-mono-latin-700-normal.woff2') format('woff2'); }
+
+  :root {
+    --ink: #100E0C; --panel: #1A1613; --panel-2: #221C18;
+    --bone: #ECE6DA; --muted: #9A9184; --line: rgba(236,230,218,0.13);
+    --accent: #EE5A2E; --accent-soft: rgba(238,90,46,0.14);
+    --f-display: 'Bricolage Grotesque', sans-serif;
+    --f-body: 'Space Grotesk', sans-serif;
+    --f-mono: 'Space Mono', monospace;
+    --edge: clamp(18px, 5.5vw, 64px); --wrap: 1240px;
+  }
 
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
-    background: oklch(0.955 0.006 70);
-    color: oklch(0.2 0.012 60);
-    font-family: 'Space Mono', monospace;
-    -webkit-font-smoothing: antialiased;
+    background: var(--ink); color: var(--bone);
+    font-family: var(--f-body); font-size: 16px; line-height: 1.5;
+    text-wrap: pretty; -webkit-font-smoothing: antialiased;
   }
-  a { color: oklch(0.55 0.11 40); text-decoration: none; }
-  a:hover { color: oklch(0.45 0.11 40); }
+  h1, h2, h3, h4 { font-family: var(--f-display); }
+  a { color: var(--bone); text-decoration: none; }
+  a:hover { color: var(--accent); }
+  button { font-family: var(--f-mono); }
+  ::selection { background: var(--accent); color: var(--ink); }
+  :focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
 
-  button { font-family: 'Space Mono', monospace; }
+  /* Fond : grain + halo, purement décoratifs. */
+  .bg-grain, .bg-glow { position: fixed; inset: 0; z-index: 0; pointer-events: none; }
+  .bg-grain { opacity: 0.05; mix-blend-mode: overlay; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  .bg-glow { background: radial-gradient(120% 90% at 50% -10%, rgba(238,90,46,0.10), transparent 55%), radial-gradient(100% 80% at 50% 120%, rgba(0,0,0,0.5), transparent 60%); }
+  .page { position: relative; z-index: 1; }
 
+  @keyframes rise { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
   @keyframes lbIn { from { opacity: 0; } to { opacity: 1; } }
   @keyframes lbCard { from { opacity: 0; transform: translateY(14px) scale(0.985); } to { opacity: 1; transform: none; } }
   @keyframes drawerIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
   @keyframes toastIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+  @media (prefers-reduced-motion: reduce) { * { animation: none !important; } }
 
-  /* header */
+  /* ---- Header ---- */
   .hdr {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 40;
-    display: flex; align-items: center; justify-content: space-between; gap: 20px;
-    padding: 16px 24px; color: #fff; pointer-events: none;
-    background: linear-gradient(to bottom, rgba(18,16,15,0.55), rgba(18,16,15,0));
+    position: sticky; top: 0; z-index: 30; display: flex; align-items: center; gap: 12px;
+    padding: 0 var(--edge); height: 58px;
+    background: color-mix(in srgb, var(--ink) 82%, transparent);
+    backdrop-filter: blur(14px); border-bottom: 1px solid var(--line);
   }
-  .brandwrap { display: flex; align-items: center; gap: 10px; }
-  .logo-chip { flex: 0 0 auto; width: 34px; height: 34px; border-radius: 7px; background: #fff; padding: 4px; display: grid; place-items: center; }
+  .brandwrap { display: flex; align-items: center; gap: 10px; min-width: 0; }
+  .logo-chip { flex: none; width: 30px; height: 30px; display: grid; place-items: center; }
   .logo-chip img { width: 100%; height: 100%; object-fit: contain; display: block; }
-  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.05em; line-height: 1.05; white-space: nowrap; margin: 0; }
-  /* Contenu réservé aux lecteurs d'écran / moteurs : hors flux, invisible à l'œil. */
-  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
-  .tagline { font-size: 10px; letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.85; margin-top: 5px; white-space: nowrap; }
-  @media (max-width: 480px) {
-    .brand { font-size: 12px; letter-spacing: 0.03em; }
-    .logo-chip { width: 30px; height: 30px; }
-  }
-  @media (max-width: 340px) {
-    .tagline { display: none; }
-  }
-
-  .pills { pointer-events: auto; display: flex; align-items: center; gap: 6px; padding: 5px; border: 1px solid rgba(255,255,255,0.5); }
-  .pill {
-    appearance: none; background: transparent; border: 0; color: #fff;
-    font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
-    padding: 6px 11px; cursor: pointer; transition: background .15s, color .15s;
-  }
-  .pill.active { background: #fff; color: #111; }
-
-  .right { pointer-events: auto; display: flex; align-items: center; gap: 12px; }
-  .langbtn, .cartbtn {
-    appearance: none; display: flex; align-items: center; gap: 6px;
-    background: transparent; border: 1px solid rgba(255,255,255,0.5); color: #fff;
-    font-size: 11px; font-weight: 700; letter-spacing: 0.14em; text-transform: uppercase;
-    padding: 7px 12px; cursor: pointer;
-  }
-  .cartbtn { position: relative; }
-  .cart-count {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-width: 17px; height: 17px; padding: 0 5px; border-radius: 9px;
-    background: oklch(0.62 0.16 40); color: #fff; font-size: 10px; font-weight: 700;
-    letter-spacing: 0; line-height: 1;
-  }
-  .meta-right { text-align: right; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; }
-  .meta-right div { opacity: 0.85; }
-  .meta-right div + div { margin-top: 5px; }
-
-  @media (max-width: 720px) {
-    .pills { display: none; }
-    .meta-right { display: none; }
+  .brand { font-family: var(--f-mono); font-weight: 700; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin: 0; }
+  .tagline { display: none; }
+  .hdr .right { margin-left: auto; display: flex; align-items: center; gap: 8px; }
+  .hdr button { display: inline-flex; align-items: center; gap: 7px; height: 36px; padding: 0 12px; background: transparent; border: 1px solid var(--line); color: var(--bone); font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; cursor: pointer; transition: border-color .15s, color .15s; }
+  .hdr button:hover { border-color: var(--accent); color: var(--accent); }
+  .hdr .cartbtn .cart-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 2px; background: var(--accent); color: var(--ink); font-weight: 700; font-size: 11px; }
+  .hdr .cartbtn .cart-count:empty, .hdr .cartbtn .cart-count[data-zero="1"] { display: none; }
+  .listenbtn svg { width: 14px; height: 14px; }
+  .meta-right { display: none; }
+  @media (max-width: 560px) {
+    .brand { font-size: 0; }
+    .brand::after { content: "ABC"; font-size: 12px; }
+    .hdr button span:not(.cart-count) { display: none; }
+    .listenbtn svg { width: 15px; height: 15px; }
   }
 
-  /* Mobile: keep the recomposition mosaic, laid out as a responsive
-     grid of 1 / 2 / 3 columns (column count chosen in mobileCols()). */
-  @media (max-width: 640px) {
-    .stage { inset: 70px 10px 12px; }
-  }
-  /* Touch devices have no hover: always show the quick-add button. */
-  @media (hover: none) {
-    .tile-add { opacity: 1; pointer-events: auto; }
-  }
+  /* ---- Hero ---- */
+  .wrap { width: 100%; max-width: var(--wrap); margin: 0 auto; padding: 0 var(--edge); }
+  .hero { padding: clamp(48px,11vw,120px) 0 clamp(36px,7vw,72px); }
+  .hero-meta { display: flex; align-items: center; gap: 12px; margin-bottom: clamp(24px,5vw,40px); animation: rise .6s both; }
+  .kicker { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  .hero-meta .rule { flex: 1; height: 1px; background: var(--line); }
+  .hero-meta .muted { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; color: var(--muted); }
+  .hero h2 { font-weight: 700; font-size: clamp(46px,13vw,132px); line-height: 0.92; letter-spacing: -0.03em; margin: 0; animation: rise .7s .06s both; }
+  .hero h2 .t1 { display: block; }
+  .hero h2 .t2 { display: block; color: var(--accent); font-style: italic; font-weight: 600; }
+  .hero-sub { font-size: clamp(15px,4vw,19px); line-height: 1.6; max-width: 56ch; margin: clamp(24px,5vw,40px) 0 0; color: color-mix(in srgb, var(--bone) 84%, transparent); animation: rise .7s .14s both; }
+  .hero-cta { display: flex; gap: 12px; flex-wrap: wrap; margin-top: clamp(24px,5vw,36px); animation: rise .7s .2s both; }
+  .btn-solid { display: inline-flex; align-items: center; gap: 10px; height: 52px; padding: 0 26px; background: var(--accent); color: var(--ink); font-family: var(--f-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; border: 0; cursor: pointer; }
+  .btn-solid:hover { background: #ff6a3d; color: var(--ink); }
+  .btn-line { display: inline-flex; align-items: center; height: 52px; padding: 0 26px; background: transparent; border: 1px solid var(--line); color: var(--bone); font-family: var(--f-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .btn-line:hover { border-color: var(--accent); color: var(--accent); }
+  .btn-solid svg, .btn-line svg { width: 15px; height: 15px; }
 
-  /* mosaic */
-  .driver { position: relative; height: 520vh; }
-  .stick { position: sticky; top: 0; height: 100vh; overflow: hidden; }
-  .stage { position: absolute; inset: 82px 24px 24px 24px; }
-  .grid { position: relative; width: 100%; height: 100%; }
-  /* Message d'état de la mosaïque (chargement / erreur API). Masqué dès que
-     le catalogue est rendu. */
-  .grid-msg {
-    position: absolute; inset: 0; display: none; place-content: center;
-    text-align: center; line-height: 1.6; padding: 0 24px;
-    font-size: 13px; letter-spacing: 0.04em; color: oklch(0.55 0.02 70);
-  }
-  .grid-msg.on { display: grid; }
-  /* Bandeau « stock non vérifié » : se superpose SANS masquer la mosaïque —
-     les pièces restent visibles, seule la vente est bloquée. */
-  .stale-banner {
-    position: absolute; left: 0; right: 0; bottom: 0; display: none;
-    padding: 10px 16px; text-align: center; line-height: 1.5;
-    font-size: 12px; letter-spacing: 0.03em;
-    background: oklch(0.55 0.16 40 / 0.94); color: oklch(0.99 0 0);
-    border-radius: 0 0 10px 10px;
-  }
+  /* ---- Pièces (grille) ---- */
+  .pieces { padding: clamp(32px,6vw,64px) 0 clamp(48px,9vw,96px); }
+  .pieces-head { display: flex; justify-content: space-between; align-items: flex-end; flex-wrap: wrap; gap: 14px; padding-bottom: clamp(18px,3vw,26px); border-bottom: 1px solid var(--line); margin-bottom: clamp(28px,5vw,44px); }
+  .pieces-head h2 { font-weight: 700; font-size: clamp(30px,7vw,56px); line-height: 0.98; letter-spacing: -0.02em; margin: 6px 0 0; }
+  #countLabel { font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  #scrollLabel { display: none; }
+
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%,282px),1fr)); gap: clamp(30px,4vw,48px) clamp(18px,2.4vw,30px); position: relative; min-height: 40px; }
+  /* Message d'état (chargement / erreur API). */
+  .grid-msg { display: none; text-align: center; line-height: 1.6; padding: 40px 24px; font-size: 13px; letter-spacing: 0.04em; color: var(--muted); grid-column: 1 / -1; }
+  .grid-msg.on { display: block; }
+  /* Bandeau « stock non vérifié » : sous la grille, sans la masquer. */
+  .stale-banner { display: none; grid-column: 1 / -1; padding: 12px 16px; text-align: center; line-height: 1.5; font-size: 12px; letter-spacing: 0.03em; background: var(--accent-soft); border: 1px solid var(--accent); color: var(--bone); }
   .stale-banner.on { display: block; }
 
-  .tile {
-    position: absolute; left: 0; top: 0; width: 80px; height: 80px; overflow: hidden;
-    background: oklch(0.9 0.006 70); cursor: pointer; will-change: left, top, width, height;
-    border-radius: 10px;
-    --fs: 12px;
-  }
-  .ph { position: absolute; inset: 0; display: grid; place-items: center; }
-  .ph .ghost {
-    font-family: 'Syne', sans-serif; font-weight: 800;
-    font-size: calc(var(--fs) * 4.4); line-height: 1; color: rgba(255,255,255,0.16);
-    letter-spacing: -0.02em;
-  }
-  .phb { position: absolute; inset: 0; opacity: 0; }
+  .tile { display: flex; flex-direction: column; gap: 14px; cursor: pointer; }
+  .ph { position: relative; margin: 0; aspect-ratio: 4/5; background: var(--panel); border: 1px solid var(--line); overflow: hidden; }
+  .ph img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s cubic-bezier(0.2,0.8,0.2,1); }
+  .tile:hover .ph img { transform: scale(1.04); }
+  .ph .ghost { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--f-display); font-weight: 800; font-size: 40px; color: rgba(236,230,218,0.14); }
+  .tile .num { position: absolute; top: 0; left: 0; z-index: 2; font-family: var(--f-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--bone); background: var(--ink); padding: 5px 9px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .metaov { display: flex; flex-direction: column; gap: 10px; }
+  .metaov .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
+  .metaov .cat { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
+  .metaov .tag { font-family: var(--f-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; white-space: nowrap; color: var(--muted); border: 1px solid var(--line); }
+  .metaov .tag.sold { color: var(--ink); background: var(--accent); border-color: var(--accent); }
+  .metaov .ttl { font-family: var(--f-display); font-weight: 600; font-size: 23px; line-height: 1.08; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+  .metaov .excerpt { font-size: 14.5px; line-height: 1.55; margin: 0; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .metaov .row2 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 2px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .metaov .edition { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+  .metaov .price { font-family: var(--f-mono); font-weight: 700; font-size: 17px; color: var(--bone); }
+  .metaov .price.sold { color: var(--muted); text-decoration: line-through; }
+  /* Bouton d'acquisition (garde la classe .tile-add : hook JS d'ajout au panier). */
+  .tile-add { display: flex; align-items: center; justify-content: space-between; gap: 10px; width: 100%; height: 48px; padding: 0 16px; margin-top: 2px; font-family: var(--f-mono); font-weight: 700; font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; border: 0; cursor: pointer; background: var(--accent); color: var(--ink); }
+  .tile-add:hover { background: #ff6a3d; }
+  .tile-add svg { width: 14px; height: 14px; }
+  .tile-add[disabled] { background: transparent; color: var(--muted); border: 1px solid var(--line); cursor: not-allowed; }
+  .tile-add.sold { text-decoration: line-through; }
+  .tile:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 
-  .metaov {
-    position: absolute; left: 0; right: 0; bottom: 0; padding: calc(var(--fs) * 0.9);
-    background: linear-gradient(to top, rgba(15,14,13,0.78), rgba(15,14,13,0.3) 55%, transparent);
-    color: #fff; pointer-events: none; z-index: 5;
-  }
-  .metaov .num { font-size: calc(var(--fs) * 0.72); letter-spacing: 0.18em; opacity: 0.75; font-variant-numeric: tabular-nums; }
-  .metaov .ttl { font-family: 'Syne', sans-serif; font-weight: 700; font-size: calc(var(--fs) * 1.18); line-height: 1.02; margin-top: 3px; text-wrap: balance; }
-  .metaov .row { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; margin-top: 5px; }
-  .metaov .cat { font-size: calc(var(--fs) * 0.66); letter-spacing: 0.24em; text-transform: uppercase; opacity: 0.82; }
-  .metaov .price { font-size: calc(var(--fs) * 0.82); font-weight: 700; opacity: 0.95; font-variant-numeric: tabular-nums; }
+  /* ---- À propos ---- */
+  .about-sec { padding: clamp(48px,9vw,96px) 0; border-top: 1px solid var(--line); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,300px),1fr)); gap: clamp(28px,5vw,64px); align-items: start; }
+  .about-col { display: flex; flex-direction: column; gap: clamp(22px,4vw,32px); }
+  .foot-title { font-family: var(--f-display); font-weight: 700; font-size: clamp(28px,6.5vw,48px); line-height: 1.0; letter-spacing: -0.02em; margin: 14px 0 0; }
+  .about-portrait { margin: 0; aspect-ratio: 4/5; background: var(--panel); border: 1px solid var(--line); overflow: hidden; display: grid; place-items: center; }
+  .about-portrait img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .about-portrait .ghost { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .about { display: flex; flex-direction: column; gap: 18px; }
+  .about p { font-size: 16px; line-height: 1.72; margin: 0; color: color-mix(in srgb, var(--bone) 90%, transparent); }
+  .about p:last-child { font-family: var(--f-display); font-weight: 600; font-size: 19px; line-height: 1.4; color: var(--bone); }
+  .about em { display: block; font-style: normal; font-size: 13px; line-height: 1.6; color: var(--muted); margin-top: 6px; padding: 18px 20px; background: var(--panel); border: 1px solid var(--line); }
 
-  .tile-add {
-    position: absolute; top: calc(var(--fs) * 0.7); right: calc(var(--fs) * 0.7); z-index: 6;
-    appearance: none; border: 0; cursor: pointer;
-    width: calc(var(--fs) * 2.1); height: calc(var(--fs) * 2.1); border-radius: 50%;
-    background: rgba(255,255,255,0.92); color: #111;
-    font-size: calc(var(--fs) * 1.3); font-weight: 700; line-height: 1;
-    display: grid; place-items: center; opacity: 0; transition: opacity .18s, transform .12s, background .15s;
-    pointer-events: none;
-  }
-  .tile:hover .tile-add { opacity: 1; pointer-events: auto; }
-  .tile-add:hover { background: oklch(0.62 0.16 40); color: #fff; }
-  .tile-add:active { transform: scale(0.9); }
-  /* Accessibilité : anneau de focus clavier sur les tuiles ; le dialog (conteneur
-     focalisé à l'ouverture) n'a pas besoin d'anneau visible. */
-  .tile:focus-visible { outline: 2px solid oklch(0.62 0.16 40); outline-offset: 3px; }
+  /* ---- Bande contact ---- */
+  .contact { background: var(--accent); color: var(--ink); }
+  .contact .wrap { padding: clamp(48px,9vw,104px) var(--edge); }
+  .contact .kicker { color: var(--ink); opacity: 0.72; display: block; margin-bottom: 20px; }
+  .contact h2 { font-family: var(--f-display); font-weight: 700; font-size: clamp(34px,9vw,84px); line-height: 0.95; letter-spacing: -0.03em; margin: 0; max-width: 15ch; }
+  .contact-sub { font-size: clamp(15px,4vw,18px); line-height: 1.6; max-width: 50ch; margin: 24px 0 0; color: var(--ink); opacity: 0.86; }
+  .contact-cta { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; margin-top: 32px; }
+  .contact-cta .btn-ink { display: inline-flex; align-items: center; gap: 10px; height: 54px; padding: 0 28px; background: var(--ink); color: var(--bone); font-family: var(--f-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; }
+  .contact-cta .btn-ink:hover { color: var(--bone); background: #000; }
+  .contact-cta .btn-ink svg { width: 15px; height: 15px; }
+  .contact-cta .mail { font-family: var(--f-mono); font-weight: 700; font-size: 14px; color: var(--ink); }
+  .contact-cta .mail:hover { color: var(--ink); text-decoration: underline; }
+
+  /* ---- Listen : bouton header ouvre un tiroir bas ---- */
+  .listen-sheet { position: fixed; left: 0; right: 0; bottom: 0; z-index: 40; background: color-mix(in srgb, var(--panel) 94%, transparent); backdrop-filter: blur(18px); border-top: 1px solid var(--accent); transform: translateY(110%); transition: transform .3s cubic-bezier(0.2,0.8,0.2,1); }
+  .listen-sheet.on { transform: translateY(0); }
+  .listen-inner { max-width: var(--wrap); margin: 0 auto; padding: 14px var(--edge) 18px; }
+  .listen-bar { display: flex; align-items: center; gap: 14px; }
+  .listen-head { flex: 1; min-width: 0; }
+  .listen-title { font-family: var(--f-mono); font-weight: 700; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; }
+  .listen-sub { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 4px; }
+  .listen-close { flex: none; width: 38px; height: 38px; display: grid; place-items: center; background: transparent; border: 1px solid var(--line); color: var(--bone); cursor: pointer; font-size: 18px; line-height: 1; }
+  .listen-close:hover { border-color: var(--accent); color: var(--accent); }
+  .sc-player { width: 100%; height: 300px; border: 0; margin-top: 14px; display: block; }
+  /* Façade RGPD : le lecteur SoundCloud n'est chargé qu'au clic. */
+  .sc-facade { display: grid; place-items: center; text-align: center; cursor: pointer; background: var(--panel-2); border: 1px dashed var(--line); padding: 22px; margin-top: 14px; }
+  .sc-play { width: 56px; height: 56px; margin: 0 auto 14px; border-radius: 50%; background: var(--accent); color: var(--ink); display: grid; place-items: center; font-size: 20px; transition: background .15s; }
+  .sc-facade:hover .sc-play, .sc-facade:focus-visible .sc-play { background: #ff6a3d; }
+  .sc-facade-title { font-family: var(--f-mono); font-weight: 700; font-size: 13px; letter-spacing: 0.04em; }
+  .sc-facade-note { font-size: 11px; line-height: 1.6; color: var(--muted); margin-top: 10px; max-width: 52ch; }
+
+  /* ---- Footer ---- */
+  .foot { background: #0A0908; border-top: 1px solid var(--line); }
+  .foot-inner { max-width: var(--wrap); margin: 0 auto; padding: clamp(40px,6vw,64px) var(--edge); display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%,190px),1fr)); gap: 32px 24px; }
+  .foot-col { display: flex; flex-direction: column; gap: 12px; }
+  .foot-brand { display: flex; align-items: center; gap: 9px; }
+  .foot-brand .dot { width: 9px; height: 9px; background: var(--accent); }
+  .foot-brand span { font-family: var(--f-mono); font-weight: 700; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .foot-tag { font-size: 13px; line-height: 1.6; color: var(--muted); }
+  .foot-label { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); }
+  .socials { display: flex; gap: 12px; }
+  .socials a { display: inline-flex; width: 34px; height: 34px; align-items: center; justify-content: center; color: var(--bone); border: 1px solid var(--line); transition: color .15s, border-color .15s; }
+  .socials a:hover { color: var(--accent); border-color: var(--accent); }
+  .socials svg { width: 17px; height: 17px; display: block; }
+  .foot-links { display: flex; flex-direction: column; gap: 10px; }
+  .foot-links a { font-size: 14px; color: var(--bone); }
+  .foot-links a:hover { color: var(--accent); }
+  .foot-contact { display: flex; flex-direction: column; gap: 10px; }
+  .foot-contact a { font-size: 14px; color: var(--bone); }
+  .foot-contact a:hover { color: var(--accent); }
+  .foot-legal { font-family: var(--f-mono); font-size: 11px; color: var(--muted); margin-top: 6px; line-height: 1.5; }
+
+  /* ---- Lightbox (pièce) ---- */
+  .lb-scrim { position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center; padding: 5vh 5vw; background: rgba(10,9,8,0.9); backdrop-filter: blur(8px); animation: lbIn .22s ease both; cursor: zoom-out; }
+  .lb-card { position: relative; display: flex; flex-direction: column; width: min(760px, 92vw); max-height: 90vh; background: var(--panel); border: 1px solid var(--line); animation: lbCard .32s cubic-bezier(0.22,0.61,0.36,1) both; cursor: default; overflow: hidden; }
   .lb-card:focus { outline: none; }
-
-  /* lightbox */
-  .lb-scrim {
-    position: fixed; inset: 0; z-index: 60; display: flex; align-items: center; justify-content: center;
-    padding: 5vh 5vw; background: rgba(18,16,15,0.86); backdrop-filter: blur(6px);
-    animation: lbIn 0.22s ease both; cursor: zoom-out;
-  }
-  .lb-card {
-    display: flex; flex-direction: column; width: min(760px, 92vw); max-height: 90vh;
-    background: oklch(0.965 0.006 70); animation: lbCard 0.32s cubic-bezier(0.22,0.61,0.36,1) both;
-    cursor: default; overflow: hidden;
-  }
-  .lb-img { position: relative; width: 100%; aspect-ratio: 1 / 1; background: oklch(0.9 0.006 70); overflow: hidden; }
-  .lb-img .ghost { font-size: 96px; }
-  .lb-nav {
-    position: absolute; top: 50%; transform: translateY(-50%); z-index: 6;
-    appearance: none; border: 0; cursor: pointer; width: 40px; height: 40px;
-    background: rgba(255,255,255,0.9); color: #111; font-size: 24px; line-height: 1;
-    display: grid; place-items: center; border-radius: 50%; transition: background .15s;
-  }
-  .lb-nav:hover { background: #fff; }
-  .lb-nav.prev { left: 12px; }
-  .lb-nav.next { right: 12px; }
-  .lb-count {
-    position: absolute; top: 12px; right: 12px; z-index: 6;
-    background: rgba(15,14,13,0.66); color: #fff; font-size: 11px; letter-spacing: 0.08em;
-    padding: 4px 9px; border-radius: 20px; font-variant-numeric: tabular-nums;
-  }
+  /* Fermeture : croix rouge orangé, coin haut-gauche de la fenêtre. */
+  .lb-close { position: absolute; top: 0; left: 0; z-index: 7; width: 44px; height: 44px; display: grid; place-items: center; background: var(--ink); color: var(--accent); border: 0; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); font-size: 20px; line-height: 1; cursor: pointer; transition: background .15s, color .15s; }
+  .lb-close:hover { background: var(--accent); color: var(--ink); }
+  .lb-img { position: relative; width: 100%; aspect-ratio: 1/1; background: var(--panel-2); overflow: hidden; }
+  .lb-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .lb-img .ghost { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--f-display); font-weight: 800; font-size: 96px; color: rgba(236,230,218,0.14); }
+  .lb-nav { position: absolute; top: 50%; transform: translateY(-50%); z-index: 6; appearance: none; border: 1px solid var(--line); cursor: pointer; width: 40px; height: 40px; background: color-mix(in srgb, var(--ink) 70%, transparent); color: var(--bone); font-size: 22px; line-height: 1; display: grid; place-items: center; transition: border-color .15s, color .15s; }
+  .lb-nav:hover { border-color: var(--accent); color: var(--accent); }
+  .lb-nav.prev { left: 12px; } .lb-nav.next { right: 12px; }
+  .lb-count { position: absolute; top: 12px; right: 12px; z-index: 6; background: color-mix(in srgb, var(--ink) 70%, transparent); color: var(--bone); font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.08em; padding: 4px 9px; }
   .lb-dots { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 6; display: flex; justify-content: center; gap: 7px; }
-  .lb-dot { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,0.55); cursor: pointer; transition: background .15s, transform .15s; }
-  .lb-dot.on { background: #fff; transform: scale(1.25); }
+  .lb-dot { width: 7px; height: 7px; background: rgba(236,230,218,0.4); cursor: pointer; transition: background .15s, transform .15s; }
+  .lb-dot.on { background: var(--accent); transform: scale(1.25); }
   .lb-thumbs { display: flex; gap: 8px; padding: 12px 26px 0; overflow-x: auto; }
-  .lb-thumb { flex: 0 0 auto; width: 54px; height: 54px; border-radius: 6px; overflow: hidden; cursor: pointer; opacity: 0.55; outline: 2px solid transparent; transition: opacity .15s, outline-color .15s; }
+  .lb-thumb { flex: 0 0 auto; width: 54px; height: 54px; overflow: hidden; cursor: pointer; opacity: 0.5; outline: 2px solid transparent; transition: opacity .15s, outline-color .15s; }
   .lb-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .lb-thumb.on { opacity: 1; outline-color: oklch(0.55 0.16 40); }
+  .lb-thumb.on { opacity: 1; outline-color: var(--accent); }
   .lb-thumb:hover { opacity: 1; }
-  .zoom-scrim { position: fixed; inset: 0; z-index: 80; background: rgba(10,9,8,0.95); display: flex; align-items: center; justify-content: center; padding: 3vh 3vw; cursor: zoom-out; animation: lbIn 0.18s ease both; }
-  .zoom-img { max-width: 96vw; max-height: 94vh; object-fit: contain; display: block; }
-  .price.sold, .lb-price.sold { color: oklch(0.64 0.21 25); }
   .lb-body { padding: 22px 26px 26px; display: flex; flex-direction: column; gap: 10px; overflow: auto; }
   .lb-top { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; }
-  .lb-cat { font-size: 11px; letter-spacing: 0.24em; text-transform: uppercase; color: oklch(0.55 0.11 40); }
-  .lb-num { font-size: 11px; letter-spacing: 0.2em; opacity: 0.55; font-variant-numeric: tabular-nums; }
-  .lb-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(26px, 4vw, 40px); line-height: 1.02; margin: 0; text-wrap: balance; }
-  .lb-desc { font-size: 13px; line-height: 1.7; opacity: 0.78; margin: 4px 0 0; max-width: 52ch; }
+  .lb-cat { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--accent); }
+  .lb-num { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.14em; color: var(--muted); }
+  .lb-title { font-family: var(--f-display); font-weight: 700; font-size: clamp(26px,4vw,40px); line-height: 1.02; margin: 0; text-wrap: balance; }
+  .lb-desc { font-size: 14px; line-height: 1.7; color: var(--muted); margin: 4px 0 0; max-width: 52ch; }
   .lb-buy { display: flex; align-items: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
-  .lb-price { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 26px; font-variant-numeric: tabular-nums; }
-  .btn-primary {
-    appearance: none; background: oklch(0.2 0.012 60); color: #fff; border: 0;
-    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; padding: 13px 22px; cursor: pointer;
-    transition: background .15s;
-  }
-  .btn-primary:hover { background: oklch(0.32 0.05 40); }
-  .btn-ghost {
-    appearance: none; background: transparent; color: oklch(0.2 0.012 60); border: 1px solid oklch(0.2 0.012 60 / 0.35);
-    font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; padding: 12px 18px; cursor: pointer;
-  }
-  .btn-ghost:hover { border-color: oklch(0.2 0.012 60); }
+  .lb-price { font-family: var(--f-mono); font-weight: 700; font-size: 24px; color: var(--bone); }
+  .lb-price.sold { color: var(--muted); text-decoration: line-through; }
+  .btn-primary { appearance: none; background: var(--accent); color: var(--ink); border: 0; font-family: var(--f-mono); font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 22px; cursor: pointer; transition: background .15s; }
+  .btn-primary:hover { background: #ff6a3d; }
+  .btn-primary[disabled] { background: transparent; color: var(--muted); border: 1px solid var(--line); cursor: not-allowed; }
+  .btn-ghost { appearance: none; background: transparent; color: var(--bone); border: 1px solid var(--line); font-family: var(--f-mono); font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 13px 18px; cursor: pointer; }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+  .zoom-scrim { position: fixed; inset: 0; z-index: 80; background: rgba(6,5,4,0.96); display: flex; align-items: center; justify-content: center; padding: 3vh 3vw; cursor: zoom-out; animation: lbIn .18s ease both; }
+  .zoom-img { max-width: 96vw; max-height: 94vh; object-fit: contain; display: block; }
 
-  /* cart drawer */
-  .cart-scrim { position: fixed; inset: 0; z-index: 70; background: rgba(18,16,15,0.5); animation: lbIn 0.2s ease both; }
-  .cart {
-    position: fixed; top: 0; right: 0; bottom: 0; z-index: 71; width: min(420px, 100vw);
-    background: oklch(0.965 0.006 70); display: flex; flex-direction: column;
-    animation: drawerIn 0.3s cubic-bezier(0.22,0.61,0.36,1) both; box-shadow: -20px 0 60px rgba(18,16,15,0.3);
-  }
-  .cart-head { display: flex; align-items: center; justify-content: space-between; padding: 22px 22px 16px; border-bottom: 1px solid oklch(0.2 0.012 60 / 0.12); }
-  .cart-head h2 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 20px; margin: 0; letter-spacing: 0.02em; }
-  .cart-close { appearance: none; background: transparent; border: 0; font-size: 22px; line-height: 1; cursor: pointer; color: oklch(0.2 0.012 60); padding: 4px 8px; }
+  /* ---- Panier (tiroir) ---- */
+  .cart-scrim { position: fixed; inset: 0; z-index: 70; background: rgba(6,5,4,0.5); animation: lbIn .2s ease both; }
+  .cart { position: fixed; top: 0; right: 0; bottom: 0; z-index: 71; width: min(420px, 100vw); background: var(--panel); border-left: 1px solid var(--line); display: flex; flex-direction: column; animation: drawerIn .3s cubic-bezier(0.22,0.61,0.36,1) both; }
+  .cart-head { display: flex; align-items: center; justify-content: space-between; padding: 22px 22px 16px; border-bottom: 1px solid var(--line); }
+  .cart-head h2 { font-family: var(--f-display); font-weight: 700; font-size: 20px; margin: 0; letter-spacing: 0.01em; }
+  .cart-close { appearance: none; background: transparent; border: 0; font-size: 22px; line-height: 1; cursor: pointer; color: var(--bone); padding: 4px 8px; }
+  .cart-close:hover { color: var(--accent); }
   .cart-items { flex: 1; overflow: auto; padding: 8px 22px; }
-  .cart-empty { opacity: 0.55; font-size: 13px; text-align: center; padding: 60px 10px; line-height: 1.7; }
-  .ci { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid oklch(0.2 0.012 60 / 0.1); }
-  .ci-thumb { width: 66px; height: 66px; flex: 0 0 66px; overflow: hidden; position: relative; background: oklch(0.9 0.006 70); }
-  .ci-thumb .ghost { font-size: 30px; }
+  .cart-empty { color: var(--muted); font-size: 13px; text-align: center; padding: 60px 10px; line-height: 1.7; }
+  .ci { display: flex; gap: 14px; padding: 16px 0; border-bottom: 1px solid var(--line); }
+  .ci-thumb { width: 66px; height: 66px; flex: 0 0 66px; overflow: hidden; position: relative; background: var(--panel-2); }
+  .ci-thumb img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; display: block; }
+  .ci-thumb .ghost { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--f-display); font-weight: 800; font-size: 24px; color: rgba(236,230,218,0.16); }
   .ci-main { flex: 1; min-width: 0; }
-  .ci-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 14px; line-height: 1.1; }
-  .ci-cat { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.6; margin-top: 3px; }
+  .ci-title { font-family: var(--f-display); font-weight: 600; font-size: 15px; line-height: 1.1; }
+  .ci-cat { font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); margin-top: 3px; }
   .ci-bottom { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; gap: 10px; }
-  .qty { display: inline-flex; align-items: center; border: 1px solid oklch(0.2 0.012 60 / 0.3); }
-  .qty button { appearance: none; background: transparent; border: 0; width: 26px; height: 26px; cursor: pointer; font-size: 15px; line-height: 1; color: oklch(0.2 0.012 60); }
-  .qty button:hover { background: oklch(0.2 0.012 60 / 0.08); }
-  .qty span { min-width: 26px; text-align: center; font-size: 13px; font-variant-numeric: tabular-nums; }
-  .ci-price { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
-  .ci-remove { appearance: none; background: transparent; border: 0; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; opacity: 0.5; cursor: pointer; padding: 0; margin-top: 6px; }
-  .ci-remove:hover { opacity: 1; color: oklch(0.55 0.16 30); }
-  .cart-foot { padding: 18px 22px 24px; border-top: 1px solid oklch(0.2 0.012 60 / 0.12); }
-  .cart-line { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
+  .qty { display: inline-flex; align-items: center; border: 1px solid var(--line); }
+  .qty button { appearance: none; background: transparent; border: 0; width: 26px; height: 26px; cursor: pointer; font-size: 15px; line-height: 1; color: var(--bone); }
+  .qty button:hover { background: var(--accent-soft); color: var(--accent); }
+  .qty span { min-width: 26px; text-align: center; font-family: var(--f-mono); font-size: 13px; }
+  .ci-price { font-family: var(--f-mono); font-weight: 700; font-size: 14px; }
+  .ci-remove { appearance: none; background: transparent; border: 0; font-family: var(--f-mono); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--muted); cursor: pointer; padding: 0; margin-top: 6px; }
+  .ci-remove:hover { color: var(--accent); }
+  .cart-foot { padding: 18px 22px 24px; border-top: 1px solid var(--line); }
+  .cart-line { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 6px; font-size: 12px; color: var(--muted); }
   .cart-total { display: flex; align-items: baseline; justify-content: space-between; margin: 10px 0 16px; }
-  .cart-total .lbl { font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.7; }
-  .cart-total .val { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 24px; font-variant-numeric: tabular-nums; }
-  .checkout-btn { width: 100%; text-align: center; }
+  .cart-total .lbl { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  .cart-total .val { font-family: var(--f-mono); font-weight: 700; font-size: 22px; }
+  .checkout-btn { width: 100%; text-align: center; justify-content: center; }
 
-  /* checkout confirmation */
-  .confirm { text-align: center; padding: 40px 10px; animation: toastIn 0.35s ease both; }
-  .confirm .tick { width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 50%; background: oklch(0.62 0.14 150); color: #fff; display: grid; place-items: center; font-size: 28px; }
-  .confirm h3 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 22px; margin: 0 0 8px; }
-  .confirm p { font-size: 13px; line-height: 1.7; opacity: 0.72; margin: 0 auto; max-width: 34ch; }
-  .confirm .order { margin-top: 14px; font-size: 12px; letter-spacing: 0.14em; opacity: 0.9; }
+  /* Confirmation */
+  .confirm { text-align: center; padding: 40px 10px; animation: toastIn .35s ease both; }
+  .confirm .tick { width: 56px; height: 56px; margin: 0 auto 18px; border-radius: 50%; background: var(--accent); color: var(--ink); display: grid; place-items: center; font-size: 28px; }
+  .confirm h3 { font-family: var(--f-display); font-weight: 700; font-size: 22px; margin: 0 0 8px; }
+  .confirm p { font-size: 13px; line-height: 1.7; color: var(--muted); margin: 0 auto; max-width: 34ch; }
+  .confirm .order { margin-top: 14px; font-family: var(--f-mono); font-size: 12px; letter-spacing: 0.12em; }
 
-  /* toast */
-  .toast {
-    position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 90;
-    background: oklch(0.2 0.012 60); color: #fff; padding: 12px 20px;
-    font-size: 12px; letter-spacing: 0.06em; animation: toastIn 0.25s ease both;
-    box-shadow: 0 10px 30px rgba(18,16,15,0.35); pointer-events: none;
-  }
-
-  /* footer / about */
-  .foot {
-    position: relative; z-index: 1; background: oklch(0.2 0.012 60); color: oklch(0.86 0.006 70);
-    padding: 64px 26px 72px;
-  }
-  .foot-inner { max-width: 680px; margin: 0 auto; text-align: center; }
-  .foot-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(30px, 6vw, 52px); line-height: 0.95; letter-spacing: -0.01em; margin: 0; }
-  .about { margin-top: 26px; font-size: 13px; line-height: 1.85; opacity: 0.82; }
-  .about p { margin: 0 0 14px; text-align: center; }
-  .about p:last-child { margin-bottom: 0; }
-  .about em { opacity: 0.7; font-size: 12px; }
-  .foot-contact { margin-top: 40px; padding-top: 24px; border-top: 1px solid oklch(0.86 0.006 70 / 0.16); font-size: 12px; letter-spacing: 0.06em; }
-  .foot-contact a { color: oklch(0.86 0.006 70); }
-  .foot-contact a:hover { color: #fff; }
-  .foot-legal { margin-top: 8px; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; opacity: 0.55; }
-  .socials { margin-top: 34px; display: flex; justify-content: center; gap: 14px; }
-  .socials a { display: inline-flex; width: 40px; height: 40px; border-radius: 50%; align-items: center; justify-content: center; color: oklch(0.86 0.006 70); border: 1px solid oklch(0.86 0.006 70 / 0.22); transition: color .15s, background .15s, border-color .15s; }
-  .socials a:hover { color: #111; background: #fff; border-color: #fff; }
-  .socials svg { width: 19px; height: 19px; display: block; }
-  .foot-links { margin-top: 30px; display: flex; flex-wrap: wrap; justify-content: center; gap: 8px 20px; font-size: 11px; letter-spacing: 0.06em; }
-  .foot-links a { color: oklch(0.86 0.006 70 / 0.75); text-decoration: none; }
-  .foot-links a:hover { color: #fff; text-decoration: underline; }
-
-  /* listen / SoundCloud */
-  .listen { position: relative; z-index: 1; background: oklch(0.24 0.012 60); color: oklch(0.9 0.006 70); padding: 56px 26px; }
-  .listen-inner { max-width: 680px; margin: 0 auto; text-align: center; }
-  .listen-title { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(24px, 5vw, 36px); letter-spacing: 0.01em; line-height: 1; }
-  .listen-sub { font-size: 11px; letter-spacing: 0.22em; text-transform: uppercase; opacity: 0.6; margin-top: 8px; }
-  .sc-player { width: 100%; height: 400px; border: 0; margin-top: 22px; border-radius: 8px; display: block; }
-  /* Façade RGPD : le lecteur SoundCloud n'est chargé qu'au clic. */
-  .sc-facade { display: grid; place-items: center; text-align: center; cursor: pointer; background: oklch(0.2 0.012 60); border: 1px dashed oklch(0.9 0.006 70 / 0.28); padding: 24px; }
-  .sc-play { width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: oklch(0.32 0.05 40); color: #fff; display: grid; place-items: center; font-size: 22px; transition: background .15s; }
-  .sc-facade:hover .sc-play, .sc-facade:focus-visible .sc-play { background: oklch(0.62 0.16 40); }
-  .sc-facade-title { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 16px; }
-  .sc-facade-note { font-size: 11px; line-height: 1.6; opacity: 0.6; margin-top: 10px; max-width: 52ch; }
+  /* Toast */
+  .toast { position: fixed; left: 50%; bottom: 26px; transform: translateX(-50%); z-index: 90; background: var(--accent); color: var(--ink); padding: 12px 20px; font-family: var(--f-mono); font-size: 12px; font-weight: 700; letter-spacing: 0.06em; animation: toastIn .25s ease both; pointer-events: none; }
 </style>
 </head>
 <body>
 
-<header class="hdr">
-  <div style="pointer-events:auto;">
-    <div class="brandwrap">
-      <span class="logo-chip"><img src="/logo.png" alt="ART BEYOND CONVENIENCE" width="34" height="34"></span>
-      <div>
-        <h1 class="brand">ART BEYOND CONVENIENCE<span class="sr-only"> — vêtements upcyclés en pièces uniques, faits main en France</span></h1>
-        <div class="tagline" id="tagline">Mode &amp; culture urbaine</div>
-      </div>
-    </div>
-  </div>
+<div class="bg-grain" aria-hidden="true"></div>
+<div class="bg-glow" aria-hidden="true"></div>
 
-  <div class="right">
-    <button class="langbtn" id="langBtn" title="FR / EN"><span style="opacity:.55;">↔</span><span id="langLabel"></span></button>
-    <button class="cartbtn" id="cartBtn"><span id="cartWord"></span><span class="cart-count" id="cartCount">0</span></button>
-    <div class="meta-right">
-      <div id="countLabel"></div>
-      <div id="scrollLabel"></div>
+<div class="page" id="top">
+
+<header class="hdr">
+  <a class="brandwrap" href="#top" aria-label="ART BEYOND CONVENIENCE">
+    <span class="logo-chip"><img src="/logo.png" alt="" width="30" height="30"></span>
+    <div>
+      <h1 class="brand">ART BEYOND CONVENIENCE<span class="sr-only"> — vêtements upcyclés en pièces uniques, faits main en France</span></h1>
+      <div class="tagline" id="tagline">Mode &amp; culture urbaine</div>
     </div>
+  </a>
+  <div class="right">
+    <button class="listenbtn" id="listenBtn" type="button" aria-expanded="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1v-9a9 9 0 0 1 18 0v9a1 1 0 0 1-1 1h-2a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
+      <span id="listenBtnLabel">Écouter</span>
+    </button>
+    <button class="langbtn" id="langBtn" type="button" title="FR / EN"><span aria-hidden="true">↔</span><span id="langLabel"></span></button>
+    <button class="cartbtn" id="cartBtn" type="button"><span id="cartWord"></span><span class="cart-count" id="cartCount" data-zero="1">0</span></button>
   </div>
 </header>
 
-<div class="driver" id="driver">
-  <div class="stick">
-    <div class="stage">
-      <div class="grid" id="grid"></div>
-      <div class="grid-msg" id="gridMsg" role="status" aria-live="polite"></div>
-      <div class="stale-banner" id="staleBanner" role="status" aria-live="polite"></div>
-    </div>
-  </div>
-</div>
+<main class="wrap">
 
-<section class="listen">
-  <div class="listen-inner">
-    <div class="listen-title" id="listenTitle">Écouter</div>
-    <div class="listen-sub" id="listenSub"></div>
-    <!-- RGPD : pas d'iframe SoundCloud chargée d'office (elle déposerait des
-         cookies tiers sans consentement). Une façade la charge au clic —
-         le clic vaut acceptation, expliquée juste en dessous du bouton. -->
-    <div class="sc-player sc-facade" id="scFacade" role="button" tabindex="0" aria-label="Charger le lecteur SoundCloud">
+  <section class="hero">
+    <div class="hero-meta">
+      <span class="kicker" id="heroKicker">Atelier Split</span>
+      <span class="rule"></span>
+      <span class="muted" id="scrollLabel"></span>
+    </div>
+    <h2>
+      <span class="t1" id="heroT1">Vêtements upcyclés,</span>
+      <span class="t2" id="heroT2">pièces uniques.</span>
+    </h2>
+    <p class="hero-sub" id="heroSub"></p>
+    <div class="hero-cta">
+      <a class="btn-solid" href="#pieces"><span id="heroCta1">Voir les pièces</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"/><path d="M13 6l6 6-6 6"/></svg></a>
+      <a class="btn-line" href="#apropos"><span id="heroCta2">À propos</span></a>
+    </div>
+  </section>
+
+  <section class="pieces" id="pieces">
+    <div class="pieces-head">
       <div>
-        <div class="sc-play" aria-hidden="true">▶</div>
-        <div class="sc-facade-title" id="scFacadeTitle"></div>
-        <div class="sc-facade-note" id="scFacadeNote"></div>
+        <span class="kicker" id="worksKicker">Le catalogue</span>
+        <h2 id="worksTitle">Pièces disponibles</h2>
       </div>
+      <span id="countLabel"></span>
+    </div>
+    <div class="grid" id="grid"></div>
+    <div class="grid-msg" id="gridMsg" role="status" aria-live="polite"></div>
+    <div class="stale-banner" id="staleBanner" role="status" aria-live="polite"></div>
+  </section>
+
+  <section class="about-sec" id="apropos">
+    <div class="about-col">
+      <div>
+        <span class="kicker" id="aboutKicker">À propos</span>
+        <h2 class="foot-title" id="footTitle">À propos</h2>
+      </div>
+      <figure class="about-portrait"><span class="ghost" id="portraitCap">Portrait / atelier</span></figure>
+    </div>
+    <div class="about" id="aboutText"></div>
+  </section>
+
+</main>
+
+<!-- Catalogue prérendu, crawlable par TOUS les moteurs (y compris ceux sans JS :
+     GPTBot, ClaudeBot, réseaux sociaux). Rempli au build par build.mjs depuis la
+     même source que la grille ; vide en dev/local. Dans <noscript> : contenu de
+     repli identique à ce que voit l'utilisateur JS (usage légitime, pas de cloaking). -->
+<noscript id="abc-prerender"></noscript>
+
+<section class="contact" id="contact">
+  <div class="wrap">
+    <span class="kicker" id="closeKicker">Acquérir une pièce</span>
+    <h2 id="closeTitle">Une seule existe. Elle peut être la vôtre.</h2>
+    <p class="contact-sub" id="closeSub"></p>
+    <div class="contact-cta">
+      <a class="btn-ink" href="mailto:contact@artbeyondconvenience.fr"><span id="closeCta">Nous écrire</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg></a>
+      <a class="mail" href="mailto:contact@artbeyondconvenience.fr">contact@artbeyondconvenience.fr</a>
     </div>
   </div>
 </section>
 
-<!-- Catalogue prérendu, crawlable par TOUS les moteurs (y compris ceux sans JS :
-     GPTBot, ClaudeBot, réseaux sociaux). Rempli au build par build.mjs depuis la
-     même source que la mosaïque ; vide en dev/local. Dans <noscript> : contenu de
-     repli identique à ce que voit l'utilisateur JS (usage légitime, pas de cloaking). -->
-<noscript id="abc-prerender"></noscript>
-
 <footer class="foot">
   <div class="foot-inner">
-    <h2 class="foot-title" id="footTitle">À propos</h2>
-    <div class="about" id="aboutText"><p>Chaque création est une œuvre unique.</p><p>Conçue et réalisée à la main, elle associe des pièces neuves et des objets existants, minutieusement sélectionnés puis réinterprétés. Chaque matière est choisie pour son histoire, sa texture et sa capacité à dialoguer avec l'ensemble.</p><p>Imaginer, déconstruire, remodeler, assembler. Le geste est lent, précis, presque méditatif. Chaque œuvre naît d'un équilibre entre mémoire, détournement et création contemporaine.</p><p>Split développe depuis toujours une démarche où l'écriture et les arts plastiques se répondent. Auteur de textes depuis l'adolescence, influencé par le cinéma romantique des années 90, la chanson française à texte et l'esthétique du rap, il transpose cette même sensibilité dans ses œuvres. Chaque création est pensée comme un récit silencieux, où les objets deviennent langage et où la matière prolonge les mots.</p><p>L'œuvre n'a pas vocation à faire consensus. Elle invite à ralentir, à observer et à interroger le regard que nous portons sur les objets, leur valeur et leur fonction.</p><p>Art Beyond Convenience.</p><p><em>Nota bene : Conformément au Code de la propriété intellectuelle, certaines créations peuvent intégrer des œuvres préexistantes dans une démarche de parodie, de pastiche ou de caricature. Elles relèvent de la liberté d'expression artistique et participent à une réflexion critique sur les images, les objets et la culture contemporaine.</em></p></div>
-    <div class="socials" id="socialsNav" aria-label="Réseaux sociaux">
-      <a href="https://www.tiktok.com/@split_the_lyricist" target="_blank" rel="noopener" title="TikTok" aria-label="TikTok">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.31 2.05 1.53 3.4 3.5 3.6v2.45c-1.28.12-2.5-.28-3.62-1.02v5.72c0 3.35-2.4 5.75-5.56 5.75-3.02 0-5.32-2.3-5.32-5.3 0-3.2 2.62-5.5 6-5.13v2.63c-.42-.13-.86-.2-1.3-.2-1.4 0-2.4 1.02-2.4 2.4 0 1.4 1 2.47 2.42 2.47 1.5 0 2.48-1.12 2.48-2.82V3h3.42z"/></svg>
-      </a>
-      <a href="https://www.instagram.com/split_the_lyricist/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg>
-      </a>
-      <a href="https://www.youtube.com/@ArtBeyondConvenience" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.41-4.73a2.5 2.5 0 0 0-1.76-1.76C19.3 5.1 12 5.1 12 5.1s-7.3 0-8.83.41A2.5 2.5 0 0 0 1.4 7.27C1 8.8 1 12 1 12s0 3.2.41 4.73a2.5 2.5 0 0 0 1.76 1.76C4.7 18.9 12 18.9 12 18.9s7.3 0 8.83-.41a2.5 2.5 0 0 0 1.76-1.76C23 15.2 23 12 23 12zM9.75 15.3V8.7L15.5 12l-5.75 3.3z"/></svg>
-      </a>
-      <a href="https://soundcloud.com/split_the_lyricist" target="_blank" rel="noopener" title="SoundCloud" aria-label="SoundCloud">
-        <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 14.2v2.8h.9v-2.8H2zm1.8-1.3V17h.9v-4.1h-.9zm1.8-.8V17h.9v-4.9h-.9zm1.8-.7V17h.9V11.4h-.9zm1.9.7V17h.9v-6.2h-.9zm2.6-3.2c-.5 0-1 .1-1.5.3V17h7.1a2.55 2.55 0 0 0 .1-5.1c-.25 0-.5.04-.73.1A4.02 4.02 0 0 0 12.7 8.9z"/></svg>
-      </a>
+    <div class="foot-col">
+      <div class="foot-brand"><span class="dot"></span><span>ABC</span></div>
+      <span class="foot-tag" id="footerTag">Vêtements upcyclés, pièces uniques, faits main en France.</span>
     </div>
-    <!-- Libellés ET cibles traduits par renderChrome. Les pages FR font foi
-         (documents juridiques de droit français) ; les pages -en sont des
-         traductions de courtoisie, servies quand la langue est EN. -->
+    <div class="foot-col">
+      <span class="foot-label" id="followLabel">Suivre</span>
+      <div class="socials" id="socialsNav" aria-label="Réseaux sociaux">
+        <a href="https://www.instagram.com/split_the_lyricist/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.tiktok.com/@split_the_lyricist" target="_blank" rel="noopener" title="TikTok" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.31 2.05 1.53 3.4 3.5 3.6v2.45c-1.28.12-2.5-.28-3.62-1.02v5.72c0 3.35-2.4 5.75-5.56 5.75-3.02 0-5.32-2.3-5.32-5.3 0-3.2 2.62-5.5 6-5.13v2.63c-.42-.13-.86-.2-1.3-.2-1.4 0-2.4 1.02-2.4 2.4 0 1.4 1 2.47 2.42 2.47 1.5 0 2.48-1.12 2.48-2.82V3h3.42z"/></svg></a>
+        <a href="https://www.youtube.com/@ArtBeyondConvenience" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.41-4.73a2.5 2.5 0 0 0-1.76-1.76C19.3 5.1 12 5.1 12 5.1s-7.3 0-8.83.41A2.5 2.5 0 0 0 1.4 7.27C1 8.8 1 12 1 12s0 3.2.41 4.73a2.5 2.5 0 0 0 1.76 1.76C4.7 18.9 12 18.9 12 18.9s7.3 0 8.83-.41a2.5 2.5 0 0 0 1.76-1.76C23 15.2 23 12 23 12zM9.75 15.3V8.7L15.5 12l-5.75 3.3z"/></svg></a>
+        <a href="https://soundcloud.com/split_the_lyricist" target="_blank" rel="noopener" title="SoundCloud" aria-label="SoundCloud"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 14.2v2.8h.9v-2.8H2zm1.8-1.3V17h.9v-4.1h-.9zm1.8-.8V17h.9v-4.9h-.9zm1.8-.7V17h.9V11.4h-.9zm1.9.7V17h.9v-6.2h-.9zm2.6-3.2c-.5 0-1 .1-1.5.3V17h7.1a2.55 2.55 0 0 0 .1-5.1c-.25 0-.5.04-.73.1A4.02 4.02 0 0 0 12.7 8.9z"/></svg></a>
+      </div>
+    </div>
     <nav class="foot-links" id="legalNav" aria-label="Informations légales">
       <a href="/cgv.html" id="legalCgvLink">CGV</a>
       <a href="/confidentialite.html" id="legalPrivacyLink">Politique de confidentialité</a>
@@ -476,6 +480,31 @@
     </div>
   </div>
 </footer>
+
+</div>
+
+<!-- Lecteur audio : tiroir bas ouvert par le bouton « Écouter » du header.
+     RGPD : pas d'iframe SoundCloud chargée d'office (elle déposerait des cookies
+     tiers sans consentement). Une façade la charge au clic — le clic vaut
+     acceptation, expliquée sous le bouton. -->
+<div class="listen-sheet" id="listenSheet" aria-hidden="true">
+  <div class="listen-inner">
+    <div class="listen-bar">
+      <div class="listen-head">
+        <div class="listen-title" id="listenTitle">Écouter</div>
+        <div class="listen-sub" id="listenSub"></div>
+      </div>
+      <button class="listen-close" id="listenClose" type="button" aria-label="Fermer le lecteur">✕</button>
+    </div>
+    <div class="sc-player sc-facade" id="scFacade" role="button" tabindex="0" aria-label="Charger le lecteur SoundCloud">
+      <div>
+        <div class="sc-play" aria-hidden="true">▶</div>
+        <div class="sc-facade-title" id="scFacadeTitle"></div>
+        <div class="sc-facade-note" id="scFacadeNote"></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div id="modals"></div>
 <div id="toasts"></div>
@@ -513,7 +542,7 @@
       loading: "Chargement…", loadError: "Catalogue momentanément indisponible.<br>Réessayez dans un instant.",
       stockUnknown: "Disponibilités non vérifiables pour le moment — la commande est momentanément suspendue. Réessayez dans un instant.",
       stockUnverified: "Disponibilité non vérifiée",
-      footTitle: "À propos", listen: "Écouter", listenSub: "La playlist ABC de Split",
+      footTitle: "Une œuvre, pas un produit", listen: "Écouter", listenSub: "La playlist ABC de Split",
       scPlay: "Charger le lecteur SoundCloud",
       scConsent: "Le lecteur n'est chargé qu'à votre demande. En cliquant, vous acceptez que SoundCloud reçoive des données (adresse IP, cookies).",
       legalCgv: "CGV", legalPrivacy: "Politique de confidentialité", legalTerms: "Conditions d'utilisation",
@@ -529,6 +558,21 @@
       order: "Commande", unique: "Pièce unique",
       color: "Couleur", size: "Taille", ref: "Réf.",
       soldout: "Épuisé", inCart: "Déjà dans le panier", lastOne: "Dernière pièce",
+      // Refonte : chaînes du nouveau design (hero, catalogue, à propos, contact, footer).
+      heroKicker: "Atelier Split",
+      heroT1: "Vêtements upcyclés,", heroT2: "pièces uniques.",
+      heroSub: "Sweats, t-shirts et vestes faits main en France. Chaque création associe pièces neuves et objets existants, minutieusement sélectionnés puis réinterprétés — art wearable, détournement, culture urbaine.",
+      heroCta1: "Voir les pièces", heroCta2: "À propos",
+      worksKicker: "Le catalogue", worksTitle: "Pièces disponibles",
+      aboutKicker: "À propos", portraitCap: "Portrait / atelier",
+      availAvailable: "Disponible", availSold: "Vendu",
+      editionLabel: "Pièce unique · 1/1", acquireLabel: "Acquérir",
+      closeKicker: "Acquérir une pièce",
+      closeTitle: "Une seule existe. Elle peut être la vôtre.",
+      closeSub: "Chaque pièce est vendue en un seul exemplaire. Écrivez-nous pour réserver une œuvre, poser une question ou convenir d'un rendez-vous à l'atelier.",
+      closeCta: "Nous écrire",
+      footerTag: "Vêtements upcyclés, pièces uniques, faits main en France.",
+      followLabel: "Suivre",
     },
     en: {
       tagline: "Fashion & urban culture",
@@ -536,7 +580,7 @@
       loading: "Loading…", loadError: "Catalogue temporarily unavailable.<br>Please try again in a moment.",
       stockUnknown: "Availability can't be verified right now — ordering is temporarily paused. Please try again in a moment.",
       stockUnverified: "Availability unverified",
-      footTitle: "About", listen: "Listen", listenSub: "Split's ABC playlist",
+      footTitle: "A work, not a product", listen: "Listen", listenSub: "Split's ABC playlist",
       scPlay: "Load the SoundCloud player",
       scConsent: "The player only loads on demand. By clicking, you agree that SoundCloud receives data (IP address, cookies).",
       legalCgv: "Terms of Sale", legalPrivacy: "Privacy Policy", legalTerms: "Terms of Use",
@@ -552,6 +596,21 @@
       order: "Order", unique: "One-of-a-kind",
       color: "Color", size: "Size", ref: "Ref.",
       soldout: "Sold out", inCart: "Already in cart", lastOne: "Last one",
+      // Redesign : strings for the new design (hero, catalogue, about, contact, footer).
+      heroKicker: "Split's Studio",
+      heroT1: "Upcycled garments,", heroT2: "unique pieces.",
+      heroSub: "Sweatshirts, t-shirts and jackets handmade in France. Each work combines new pieces and existing objects, carefully selected then reinterpreted — wearable art, détournement, urban culture.",
+      heroCta1: "View the pieces", heroCta2: "About",
+      worksKicker: "The catalogue", worksTitle: "Available pieces",
+      aboutKicker: "About", portraitCap: "Portrait / studio",
+      availAvailable: "Available", availSold: "Sold",
+      editionLabel: "One-of-a-kind · 1/1", acquireLabel: "Acquire",
+      closeKicker: "Acquire a piece",
+      closeTitle: "Only one exists. It can be yours.",
+      closeSub: "Each piece is sold as a single copy. Write to us to reserve a work, ask a question or arrange a visit to the studio.",
+      closeCta: "Get in touch",
+      footerTag: "Upcycled garments, unique pieces, handmade in France.",
+      followLabel: "Follow",
     },
   };
 
@@ -668,118 +727,11 @@
     return state.lang === "fr" ? (v + " €") : ("€" + v);
   }
 
-  // deterministic patchwork tile background per index
-  function tileBg(i) {
-    var h1 = (i * 47 + 20) % 360;
-    var h2 = (i * 83 + 200) % 360;
-    var c1 = "oklch(0.62 0.11 " + h1 + ")";
-    var c2 = "oklch(0.42 0.09 " + h2 + ")";
-    var c3 = "oklch(0.72 0.08 " + ((h1 + 40) % 360) + ")";
-    return "linear-gradient(135deg, " + c1 + " 0%, " + c2 + " 60%, " + c3 + " 100%)";
-  }
-
   // ---------------------------------------------------------------------------
-  // Seeded arrangements (ported from the original component)
-  // ---------------------------------------------------------------------------
-  function rng(seed) {
-    var s = seed >>> 0;
-    return function () {
-      s |= 0; s = (s + 0x6D2B79F5) | 0;
-      var t = Math.imul(s ^ (s >>> 15), 1 | s);
-      t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-      return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-    };
-  }
-  function shuffle(arr, rnd) {
-    var a = arr.slice();
-    for (var i = a.length - 1; i > 0; i--) {
-      var j = Math.floor(rnd() * (i + 1));
-      var tmp = a[i]; a[i] = a[j]; a[j] = tmp;
-    }
-    return a;
-  }
-  function partition(x, y, w, h, idxs, weights, horiz, out) {
-    if (idxs.length === 1) { out[idxs[0]] = { x: x, y: y, w: w, h: h }; return; }
-    var total = idxs.reduce(function (s, k) { return s + weights[k]; }, 0);
-    var acc = 0, split = 1;
-    for (var k = 0; k < idxs.length; k++) {
-      acc += weights[idxs[k]];
-      if (acc >= total / 2) { split = k + 1; break; }
-    }
-    split = Math.max(1, Math.min(idxs.length - 1, split));
-    var a = idxs.slice(0, split), b = idxs.slice(split);
-    var wa = a.reduce(function (s, k) { return s + weights[k]; }, 0);
-    var frac = wa / total;
-    if (horiz) {
-      var w1 = w * frac;
-      partition(x, y, w1, h, a, weights, false, out);
-      partition(x + w1, y, w - w1, h, b, weights, false, out);
-    } else {
-      var h1 = h * frac;
-      partition(x, y, w, h1, a, weights, true, out);
-      partition(x, y + h1, w, h - h1, b, weights, true, out);
-    }
-  }
-
-  var arrangements = [], depth = [], phase = [];
-
-  // Mobile: recomposition over a clean grid of `cols` columns.
-  // Each of the 4 arrangements is a different shuffle of the pieces into the
-  // grid cells, so scrolling still morphs the layout (recomposition kept).
-  function buildGridArrangements(cols) {
-    var rows = Math.ceil(N / cols);
-    var base = Array.from({ length: N }, function (_, i) { return i; });
-    arrangements = [];
-    for (var s = 0; s < 4; s++) {
-      var rnd = rng(2000 + s * 613);
-      var order = shuffle(base, rnd);
-      var out = new Array(N);
-      for (var cell = 0; cell < N; cell++) {
-        var r = Math.floor(cell / cols), c = cell % cols;
-        out[order[cell]] = { x: c / cols, y: r / rows, w: 1 / cols, h: 1 / rows };
-      }
-      arrangements.push(out);
-    }
-    depth = base.map(function () { return 0; });
-    phase = base.map(function () { return 0; });
-  }
-
-  function buildArrangements() {
-    // Catalogue vide (API pas encore répondu, ou en erreur) : rien à disposer.
-    // tick() s'appuie sur `arrangements.length` pour ne rien animer.
-    if (!N) { arrangements = []; depth = []; phase = []; return; }
-    var cols = mobileCols();
-    if (cols > 0) { buildGridArrangements(cols); return; }
-    var base = Array.from({ length: N }, function (_, i) { return i; });
-    arrangements = [];
-    for (var s = 0; s < 4; s++) {
-      var rnd = rng(1000 + s * 977);
-      var weights = base.map(function () { return 1 + rnd() * 2.4; });
-      var order = shuffle(base, rnd);
-      var horiz = s % 2 === 0;
-      var out = new Array(N);
-      partition(0, 0, 1, 1, order, weights, horiz, out);
-      arrangements.push(out);
-    }
-    var r2 = rng(42);
-    depth = base.map(function () { return 0.25 + r2() * 0.85; });
-    phase = base.map(function () { return r2() * Math.PI * 2; });
-  }
-
-  // ---------------------------------------------------------------------------
-  // DOM: build tiles
+  // DOM: build tiles (grille éditoriale — la mosaïque au scroll a été retirée)
   // ---------------------------------------------------------------------------
   var grid = document.getElementById("grid");
   var tiles = [];
-
-  // Number of images per row on mobile (0 = desktop free mosaic).
-  function mobileCols() {
-    var w = window.innerWidth;
-    if (w > 640) return 0;
-    if (w <= 340) return 1;
-    if (w <= 480) return 2;
-    return 3;
-  }
 
   function ghostSpan(txt) {
     var g = document.createElement("div");
@@ -878,52 +830,80 @@
     return state.stockTrusted && a.stock > 0 && inCartQty(a.id) < a.stock;
   }
 
+  //: Flèche du bouton « Acquérir » — constante, jamais dérivée de données.
+  var ACQUIRE_ARROW =
+    '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" ' +
+    'stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' +
+    '<path d="M7 17 17 7"/><path d="M7 7h10v10"/></svg>';
+
+  // Carte de pièce (grille éditoriale). Conserve les hooks JS : classe .tile,
+  // role=button + openLb au clavier, .metaov .ttl/.cat/.price, et .tile-add
+  // (bouton d'ajout au panier). La mosaïque au scroll a été retirée : les cartes
+  // sont des enfants de grille normaux, la grille reflue en CSS.
   function buildTiles() {
     grid.innerHTML = "";
     tiles = [];
+    var ui = UI[state.lang];
     articles.forEach(function (a) {
-      var tile = document.createElement("div");
+      var sold = isSoldOut(a);
+      var tile = document.createElement("article");
       tile.className = "tile";
-      tile.style.background = tileBg(a.i);
       tile.setAttribute("data-tile", "");
 
-      var ph = document.createElement("div");
-      ph.className = "ph";
-      ph.appendChild(smallImg(a.img, a.title, a.numLabel));
-      tile.appendChild(ph);
+      var fig = document.createElement("figure");
+      fig.className = "ph";
+      fig.appendChild(smallImg(a.img, a.title, a.numLabel));
+      var num = document.createElement("span"); num.className = "num"; num.textContent = "N° " + a.numLabel;
+      fig.appendChild(num);
+      tile.appendChild(fig);
 
-      // add-to-cart quick button (hidden when sold out)
-      if (!isSoldOut(a)) {
-        var add = document.createElement("button");
-        add.className = "tile-add";
-        add.type = "button";
-        add.textContent = "+";
-        add.title = UI[state.lang].add;
-        // Stock non confirmé par l'API : bouton inerte. buildTiles() est rejoué
-        // dès que l'API répond, ce qui le réactive.
-        add.disabled = !state.stockTrusted;
-        add.addEventListener("click", function (e) { e.stopPropagation(); addToCart(a.id); });
-        tile.appendChild(add);
-      }
-
-      // meta overlay
       var ov = document.createElement("div");
       ov.className = "metaov";
-      var num = document.createElement("div"); num.className = "num"; num.textContent = "N° " + a.numLabel;
-      var ttl = document.createElement("div"); ttl.className = "ttl"; ttl.textContent = a.title;
+
       var row = document.createElement("div"); row.className = "row";
-      var cat = document.createElement("div"); cat.className = "cat"; cat.textContent = CAT_LABEL[state.lang][a.cat] || a.cat;
-      var price = document.createElement("div"); price.className = "price";
-      price.textContent = isSoldOut(a) ? UI[state.lang].soldout : money(a.price);
-      if (isSoldOut(a)) price.classList.add("sold");
-      row.appendChild(cat); row.appendChild(price);
-      ov.appendChild(num); ov.appendChild(ttl); ov.appendChild(row);
+      var cat = document.createElement("span"); cat.className = "cat"; cat.textContent = CAT_LABEL[state.lang][a.cat] || a.cat;
+      var tag = document.createElement("span"); tag.className = "tag" + (sold ? " sold" : "");
+      tag.textContent = sold ? ui.availSold : ui.availAvailable;
+      row.appendChild(cat); row.appendChild(tag);
+
+      var ttl = document.createElement("h3"); ttl.className = "ttl"; ttl.textContent = a.title;
+
+      var row2 = document.createElement("div"); row2.className = "row2";
+      var edi = document.createElement("span"); edi.className = "edition"; edi.textContent = ui.editionLabel;
+      var price = document.createElement("span"); price.className = "price" + (sold ? " sold" : "");
+      price.textContent = sold ? ui.availSold : money(a.price);
+      row2.appendChild(edi); row2.appendChild(price);
+
+      ov.appendChild(row);
+      ov.appendChild(ttl);
+      if (a.desc) {
+        var exc = document.createElement("p"); exc.className = "excerpt"; exc.textContent = a.desc;
+        ov.appendChild(exc);
+      }
+      ov.appendChild(row2);
+
+      // Bouton d'acquisition — hook .tile-add (ajout au panier). Épuisé : bouton
+      // inerte « Vendu ». Stock non confirmé par l'API : inerte aussi. buildTiles()
+      // est rejoué dès que l'API répond, ce qui le réactive.
+      var add = document.createElement("button");
+      add.className = "tile-add" + (sold ? " sold" : "");
+      add.type = "button";
+      if (sold) {
+        add.textContent = ui.availSold;
+        add.disabled = true;
+      } else {
+        add.innerHTML = '<span class="lbl"></span>' + ACQUIRE_ARROW;
+        add.querySelector(".lbl").textContent = ui.acquireLabel;
+        add.disabled = !state.stockTrusted;
+        add.addEventListener("click", function (e) { e.stopPropagation(); addToCart(a.id); });
+      }
+      ov.appendChild(add);
       tile.appendChild(ov);
 
-      // Accessibilité : la tuile est un bouton opérable au clavier.
+      // Accessibilité : la carte est un bouton opérable au clavier.
       tile.setAttribute("role", "button");
       tile.setAttribute("tabindex", "0");
-      tile.setAttribute("aria-label", a.title + " — voir la pièce");
+      tile.setAttribute("aria-label", a.title + (state.lang === "fr" ? " — voir la pièce" : " — view the piece"));
       tile.addEventListener("click", function () { openLb(a.i); });
       tile.addEventListener("keydown", function (e) {
         if (e.key === "Enter" || e.key === " ") { e.preventDefault(); openLb(a.i); }
@@ -932,94 +912,6 @@
       grid.appendChild(tile);
       tiles.push(tile);
     });
-  }
-
-  function refreshTileTexts() {
-    // update meta + quick-add labels on lang change (keeps tiles/animation intact)
-    for (var i = 0; i < tiles.length; i++) {
-      var a = articles[i];
-      var t = tiles[i];
-      t.querySelector(".metaov .ttl").textContent = a.title;
-      t.querySelector(".metaov .cat").textContent = CAT_LABEL[state.lang][a.cat] || a.cat;
-      var pEl = t.querySelector(".metaov .price");
-      pEl.textContent = isSoldOut(a) ? UI[state.lang].soldout : money(a.price);
-      pEl.classList.toggle("sold", isSoldOut(a));
-      var addBtn = t.querySelector(".tile-add");
-      if (addBtn) addBtn.title = UI[state.lang].add;
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Scroll-driven layout loop
-  // ---------------------------------------------------------------------------
-  var driver = document.getElementById("driver");
-  var lastKey = null, dirty = true;
-
-  function progress() {
-    if (!driver) return 0;
-    var r = driver.getBoundingClientRect();
-    var travel = driver.offsetHeight - window.innerHeight;
-    if (travel <= 0) return 0;
-    return Math.max(0, Math.min(1, -r.top / travel));
-  }
-  function smooth(t) { return t * t * (3 - 2 * t); }
-  function lerpRect(A, B, f) {
-    return { x: A.x + (B.x - A.x) * f, y: A.y + (B.y - A.y) * f, w: A.w + (B.w - A.w) * f, h: A.h + (B.h - A.h) * f };
-  }
-
-  function tick() {
-    requestAnimationFrame(tick);
-    if (!arrangements.length) return;
-    var W = grid.clientWidth, H = grid.clientHeight;
-    if (!W || !H) return;
-    var p = progress();
-    var eff = state.effect;
-    var gap = 2;
-    var AN = arrangements.length;
-
-    if (eff === "crossfade") {
-      for (var b = 0; b < tiles.length; b++) {
-        var slotb = tiles[b].querySelector("[data-slotb]");
-        if (slotb) {
-          var o = 0.5 + 0.5 * Math.sin(p * Math.PI * 2 * 2.5 + phase[b]);
-          slotb.style.opacity = o.toFixed(3);
-        }
-      }
-    }
-
-    var key = eff + ":" + gap + ":" + W + "x" + H + ":" + p.toFixed(4);
-    if (key === lastKey && !dirty) return;
-    lastKey = key; dirty = false;
-
-    for (var i = 0; i < tiles.length; i++) {
-      var el = tiles[i];
-      var rect, tx = 0, ty = 0, sc = 1;
-      if (eff === "recompose") {
-        var t = p * (AN - 1);
-        var idx = Math.floor(t);
-        if (idx >= AN - 1) idx = AN - 2;
-        var f = smooth(t - idx);
-        rect = lerpRect(arrangements[idx][i], arrangements[idx + 1][i], f);
-      } else if (eff === "parallax") {
-        rect = arrangements[0][i];
-        var d = depth[i];
-        ty = (p - 0.5) * H * 0.55 * d;
-        sc = 1 + (p * 0.12 * d);
-      } else {
-        rect = arrangements[0][i];
-      }
-      var x = rect.x * W + gap / 2;
-      var y = rect.y * H + gap / 2;
-      var w = Math.max(2, rect.w * W - gap);
-      var h = Math.max(2, rect.h * H - gap);
-      el.style.left = x + "px";
-      el.style.top = y + "px";
-      el.style.width = w + "px";
-      el.style.height = h + "px";
-      el.style.transform = (tx || ty || sc !== 1) ? ("translate(" + tx + "px," + ty + "px) scale(" + sc + ")") : "";
-      var fs = Math.max(9, Math.min(17, h * 0.052));
-      el.style.setProperty("--fs", fs + "px");
-    }
   }
 
   // ---------------------------------------------------------------------------
@@ -1069,7 +961,11 @@
     renderCart();
   }
   function updateCartCount() {
-    document.getElementById("cartCount").textContent = cartCount();
+    var n = cartCount();
+    var badge = document.getElementById("cartCount");
+    badge.textContent = n;
+    // Badge masqué quand le panier est vide (voir .cart-count[data-zero]).
+    badge.setAttribute("data-zero", n ? "0" : "1");
   }
 
   var toastTimer = null;
@@ -1127,6 +1023,20 @@
     termsLink.textContent = ui.legalTerms; termsLink.href = "/conditions" + legalSuffix + ".html";
     document.getElementById("legalNav").setAttribute("aria-label", ui.legalNavLabel);
     document.getElementById("socialsNav").setAttribute("aria-label", ui.socialsLabel);
+    // Refonte : chaînes du nouveau design, écrites dans leurs emplacements. Les
+    // CTA (hero/contact) portent une flèche SVG à côté du <span> ciblé : écrire
+    // le textContent du span ne touche pas la flèche.
+    function setT(id, v) { var e = document.getElementById(id); if (e) e.textContent = v; }
+    setT("heroKicker", ui.heroKicker);
+    setT("heroT1", ui.heroT1); setT("heroT2", ui.heroT2);
+    setT("heroSub", ui.heroSub);
+    setT("heroCta1", ui.heroCta1); setT("heroCta2", ui.heroCta2);
+    setT("worksKicker", ui.worksKicker); setT("worksTitle", ui.worksTitle);
+    setT("aboutKicker", ui.aboutKicker); setT("portraitCap", ui.portraitCap);
+    setT("closeKicker", ui.closeKicker); setT("closeTitle", ui.closeTitle);
+    setT("closeSub", ui.closeSub); setT("closeCta", ui.closeCta);
+    setT("footerTag", ui.footerTag); setT("followLabel", ui.followLabel);
+    setT("listenBtnLabel", ui.listen);
     updateCartCount();
   }
 
@@ -1230,9 +1140,15 @@
     card.setAttribute("tabindex", "-1");
     card.addEventListener("click", function (e) { e.stopPropagation(); });
 
+    // Fermeture : croix rouge orangé en haut à gauche de la fenêtre.
+    var closeBtn = txt("button", "lb-close", "✕");
+    closeBtn.type = "button";
+    closeBtn.setAttribute("aria-label", ui.close);
+    closeBtn.addEventListener("click", function (e) { e.stopPropagation(); closeLb(); });
+    card.appendChild(closeBtn);
+
     var imgs = lbImages(a);
     var img = el("div", "lb-img");
-    img.style.background = tileBg(a.i);
     img.appendChild(carouselImage(a));
     if (imgs.length > 1) {
       var prev = txt("button", "lb-nav prev", "‹"); prev.type = "button";
@@ -1298,10 +1214,6 @@
       addBtn.addEventListener("click", function () { if (canAdd(a)) { addToCart(a.id); openCart(); } });
       buy.appendChild(addBtn);
     }
-    var closeBtn = txt("button", "btn-ghost", ui.close);
-    closeBtn.type = "button";
-    closeBtn.addEventListener("click", closeLb);
-    buy.appendChild(closeBtn);
     body.appendChild(buy);
 
     card.appendChild(body);
@@ -1389,7 +1301,6 @@
     var ui = UI[state.lang];
     var row = el("div", "ci");
     var thumb = el("div", "ci-thumb");
-    thumb.style.background = tileBg(a.i);
     thumb.appendChild(smallImg(a.img, a.title, a.numLabel));
     row.appendChild(thumb);
 
@@ -1497,7 +1408,7 @@
     articlesById = indexById(articles);
     persist();
     renderChrome();
-    refreshTileTexts();
+    buildTiles();
     renderModals();
   }
 
@@ -1527,12 +1438,35 @@
       if (e.key === "Enter" || e.key === " ") { e.preventDefault(); loadSoundCloud(); }
     });
   })();
+
+  // Tiroir « Écouter » : le bouton du header l'ouvre / le ferme. La façade
+  // SoundCloud à l'intérieur ne charge l'iframe qu'au clic (RGPD, ci-dessus).
+  function closeListenSheet() {
+    var sheet = document.getElementById("listenSheet");
+    var btn = document.getElementById("listenBtn");
+    if (sheet) { sheet.classList.remove("on"); sheet.setAttribute("aria-hidden", "true"); }
+    if (btn) btn.setAttribute("aria-expanded", "false");
+  }
+  (function () {
+    var btn = document.getElementById("listenBtn");
+    var sheet = document.getElementById("listenSheet");
+    var closeB = document.getElementById("listenClose");
+    if (!btn || !sheet) return;
+    btn.addEventListener("click", function () {
+      var open = sheet.classList.toggle("on");
+      sheet.setAttribute("aria-hidden", open ? "false" : "true");
+      btn.setAttribute("aria-expanded", open ? "true" : "false");
+    });
+    if (closeB) closeB.addEventListener("click", closeListenSheet);
+  })();
+
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape") {
       var z = document.querySelector(".zoom-scrim");
       if (z) { z.remove(); return; }
       if (state.lb != null) closeLb();
       else if (state.cartOpen) closeCart();
+      else closeListenSheet();
     } else if (state.lb != null && e.key === "ArrowLeft") {
       lbGo(-1);
     } else if (state.lb != null && e.key === "ArrowRight") {
@@ -1560,13 +1494,6 @@
     if (state.lb != null) closeLb(true);
   });
 
-  var lastCols = mobileCols();
-  window.addEventListener("resize", function () {
-    var c = mobileCols();
-    if (c !== lastCols) { lastCols = c; buildArrangements(); }
-    dirty = true; lastKey = null;
-  });
-
   // Replace the embedded catalogue with live data from the backend.
   function applyCatalog(list) {
     CATALOG.length = 0;
@@ -1584,9 +1511,7 @@
     articlesById = indexById(articles);
     pruneCart();
     updateCartCount();
-    buildArrangements();
     buildTiles();
-    dirty = true; lastKey = null;
   }
 
   // ---------------------------------------------------------------------------
@@ -1623,7 +1548,6 @@
   applyCatalog(embeddedCatalog());   // 1. snapshot : affichage immédiat
   renderChrome();
   openFromHash();                    // ouvre la pièce si l'URL est un lien profond
-  requestAnimationFrame(tick);
 
   // Live catalogue source. On Vercel, set window.ABC_API_BASE to the backend API
   // URL (e.g. "https://api.artbeyondconvenience.com/") so the shop loads live data.
