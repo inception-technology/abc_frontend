@@ -31,6 +31,22 @@ Puis redéploie (push ou `vercel --prod`). Sans cette ligne, la boutique utilise
 catalogue embarqué — elle ne casse jamais. Côté Railway, `ALLOWED_ORIGINS` doit
 contenir l'URL de cette boutique (CORS).
 
+## Mesure d'audience (facultatif)
+
+Cloudflare Web Analytics, **inerte tant que `CF_ANALYTICS_TOKEN` n'est pas
+posée**. Pour l'activer :
+
+1. Cloudflare → **Web Analytics** → *Add a site* → hôte
+   `www.artbeyondconvenience.fr`.
+2. Copier le **jeton** (32 caractères hexa) du snippet affiché — **ne pas coller
+   le snippet**, `build.mjs` s'en charge avec les bons réglages de CSP.
+3. Vercel → projet → *Settings → Environment Variables* → `CF_ANALYTICS_TOKEN` =
+   le jeton, sur *Production*.
+4. Redéployer (push ou `vercel --prod`).
+
+Le beacon est alors posé sur toutes les pages. Cookieless, sans bandeau de
+consentement. Pour désactiver : retirer la variable et redéployer.
+
 ## Séparation front / back
 
 - **Ce repo (public)** : uniquement la boutique. Aucun secret, aucun code serveur.
