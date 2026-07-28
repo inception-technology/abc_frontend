@@ -47,6 +47,29 @@ Images produits :
 - fichiers relatifs (`cobain-27.jpg`…) → servis par cette boutique (`img/`) ;
 - URLs absolues (Cloudflare R2) renvoyées par l'admin → utilisées telles quelles.
 
+## Mesure d'audience (Cloudflare Web Analytics)
+
+**Inerte par défaut.** Sans la variable `CF_ANALYTICS_TOKEN`, aucun script de
+mesure n'est posé et la boutique ne charge rien de tiers — c'est l'état du
+développement, de la CI, et de la production tant que la variable n'est pas
+posée dans Vercel.
+
+Choix assumé : Cloudflare Web Analytics **ne pose aucun cookie** et ne piste pas
+d'un site à l'autre. Pas de bandeau de consentement à ajouter, ce qui cadre avec
+la posture de confidentialité du reste du projet (polices auto-hébergées, RGPD).
+La boutique étant sur Vercel et non derrière le proxy Cloudflare, on pose le
+« beacon » à la main, au build.
+
+**Activer** : créer un site dans Cloudflare (*Web Analytics → Add a site*, hôte
+`www.artbeyondconvenience.fr`), copier le **jeton** (32 hexa) du snippet proposé
+— *sans coller le snippet lui-même* —, puis poser `CF_ANALYTICS_TOKEN` dans les
+variables du projet Vercel et redéployer. `build.mjs` injecte alors le beacon sur
+**toutes** les pages (accueil, produits, légales, succès/annulation). Le jeton
+n'est pas un secret (il est visible dans le HTML servi) ; on le passe par
+l'environnement pour garder l'inertie par défaut et ne rien coder de spécifique
+au site dans ce dépôt public. Les deux hôtes Cloudflare sont déjà autorisés dans
+la CSP de `vercel.json`. Garde-fou en CI : `scripts/check-analytics.mjs`.
+
 ## Langues et pages légales
 
 Le sélecteur FR/EN mémorise le choix dans `abc_lang` (localStorage). Les liens

@@ -1,9 +1,11 @@
 name: CI
 
-# Boutique vanilla (aucun build de bundler). On vérifie deux choses à chaque
+# Boutique vanilla (aucun build de bundler). On vérifie trois choses à chaque
 # push sur main et sur chaque PR :
 #   1. le JS inline des pages compile (un typo casserait la page en prod) ;
-#   2. l'injection du catalogue au déploiement reste opérante (build.mjs --check).
+#   2. l'injection du catalogue au déploiement reste opérante (build.mjs --check) ;
+#   3. le beacon d'analytics reste inerte par défaut, idempotent, et la CSP
+#      l'autorise (check-analytics.mjs).
 
 on:
   push:
@@ -27,6 +29,13 @@ jobs:
 
       - name: Syntaxe du JS inline (index / success / cancel)
         run: node scripts/check-html-js.mjs
+
+      - name: Beacon analytics inerte + CSP cohérente
+        # Le beacon Cloudflare est INERTE sans CF_ANALYTICS_TOKEN : la CI ne pose
+        # aucune variable, donc ce job vérifie l'état par défaut (aucune balise)
+        # en plus des fonctions pures (idempotence, refus d'un jeton biscornu) et
+        # de l'accord entre le beacon et la CSP de vercel.json.
+        run: node scripts/check-analytics.mjs
 
       - name: Injection du catalogue (build.mjs --check)
         # --check n'écrit rien et ne publie rien : il vérifie le CODE. Il ÉCHOUE

@@ -38,7 +38,7 @@
  */
 
 import { readFile, writeFile, mkdir } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+import { fileURLToPath, pathToFileURL } from "node:url";
 import { dirname, join } from "node:path";
 
 const HERE = dirname(fileURLToPath(import.meta.url));
@@ -66,6 +66,71 @@ const CHECK_ONLY = process.argv.includes("--check");
 //: Échappatoire explicite pour publier SANS le catalogue (voir `main`). Doit
 //: rester un geste conscient : c'est un site sans contenu indexable.
 const ALLOW_EMPTY = process.env.ABC_ALLOW_EMPTY_CATALOG === "1";
+
+// --------------------------------------------------------------------------- #
+// Cloudflare Web Analytics (mesure d'audience de la boutique)
+//
+// La boutique est sur Vercel, pas derrière le proxy Cloudflare (seul le domaine
+// `.com` de l'API l'est) : l'injection automatique du proxy n'est donc pas
+// disponible ici. On pose le « beacon » à la main, à la construction.
+//
+// INERTE PAR DÉFAUT : sans `CF_ANALYTICS_TOKEN`, aucune balise n'est écrite, et
+// le site ne charge rien. C'est l'état du développement, de la CI, et de la
+// production tant que la variable n'est pas posée dans Vercel — même patron que
+// SENTRY_DSN côté API.
+//
+// Choisi pour ce projet : Cloudflare Web Analytics ne pose AUCUN cookie et ne
+// piste pas d'un site à l'autre. Pas de bandeau de consentement à ajouter, ce
+// qui cadre avec la posture de confidentialité du reste du projet (et le RGPD).
+//
+// Le jeton n'est PAS un secret : il apparaît en clair dans le HTML servi à
+// chaque visiteur. On le passe quand même par l'environnement plutôt qu'en dur,
+// pour garder l'inertie par défaut et ne rien coder de spécifique au site dans
+// ce dépôt (public).
+// --------------------------------------------------------------------------- #
+const CF_ANALYTICS_TOKEN = (process.env.CF_ANALYTICS_TOKEN || "").trim();
+
+//: Le jeton Cloudflare est un identifiant de 32 caractères hexadécimaux. On
+//: refuse tout ce qui n'a pas cette forme : une valeur biscornue posée par
+//: erreur casserait l'attribut `data-cf-beacon` (donc le HTML) au lieu de rester
+//: sans effet.
+const CF_TOKEN_RE = /^[a-f0-9]{32}$/i;
+
+//: Repère un beacon Cloudflare déjà présent dans une page. Sert à l'IDEMPOTENCE :
+//: `build.mjs` réécrit les mêmes fichiers à chaque déploiement, on retire donc
+//: l'ancien avant de poser le courant — sinon il s'empilerait, ou survivrait au
+//: retrait du jeton.
+const BEACON_RE = /\s*<script\b[^>]*\bcloudflareinsights\b[^>]*><\/script>/gi;
+
+/** Balise beacon pour un jeton donné, ou "" si absent/invalide. Fonction pure. */
+export function beaconTag(token) {
+  const t = (token || "").trim();
+  if (!t) return "";
+  if (!CF_TOKEN_RE.test(t)) {
+    console.warn("  ⚠ CF_ANALYTICS_TOKEN ignoré : 32 caractères hexadécimaux "
+      + "attendus. Aucun beacon posé.");
+    return "";
+  }
+  return `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" `
+    + `data-cf-beacon='{"token": "${t}"}'></script>`;
+}
+
+/**
+ * Pose (ou retire) le beacon dans une page, avant `</head>`. Fonction pure.
+ *
+ * Idempotente et réversible : on retire d'abord tout beacon existant, puis on
+ * insère le courant si un jeton est fourni. Rejouer le build ne l'empile pas ;
+ * retirer le jeton l'enlève au build suivant.
+ */
+export function withBeacon(html, token) {
+  const sans = html.replace(BEACON_RE, "");
+  const tag = beaconTag(token);
+  if (!tag) return sans;
+  // Saut de ligne AVANT la balise, pas après : `BEACON_RE` commence par `\s*`,
+  // donc il reprend ce `\n` au passage suivant. Le mettre après le laisserait
+  // derrière lui et la fonction ne serait ni idempotente ni réversible.
+  return sans.replace(/<\/head>/i, `\n${tag}</head>`);
+}
 
 //: L'API est réveillée par le build lui-même et peut être en cours de
 //: redéploiement (Railway redéploie sur push, comme Vercel). Une seule
@@ -272,6 +337,42 @@ const LEGAL = [
   ["cgv-en", "0.2"], ["conditions-en", "0.2"], ["confidentialite-en", "0.2"],
 ];
 
+//: Pages statiques que `build.mjs` ne régénère pas autrement (l'accueil et les
+//: pages produit reçoivent le beacon par un autre chemin). Le beacon doit être
+//: PARTOUT pour mesurer tout le trafic — dont success.html, la page d'après-achat,
+//: qui est le signal de conversion.
+const STATIC_PAGES = [
+  ...LEGAL.map(([path]) => `${path}.html`),
+  "success.html",
+  "cancel.html",
+];
+
+/**
+ * Pose le beacon sur les pages statiques que le build ne réécrit pas sinon.
+ *
+ * Écrit UNIQUEMENT si le contenu change : jeton absent (le défaut) = aucune
+ * modification, donc aucun fichier touché dans l'arbre de travail. Jeton présent
+ * = la balise est posée une fois puis stable (withBeacon est idempotent).
+ */
+async function writeStaticPageBeacons() {
+  let touchees = 0;
+  for (const nom of STATIC_PAGES) {
+    const chemin = join(HERE, nom);
+    let avant;
+    try {
+      avant = await readFile(chemin, "utf8");
+    } catch {
+      continue; // page absente : rien à faire, pas d'échec
+    }
+    const apres = withBeacon(avant, CF_ANALYTICS_TOKEN);
+    if (apres !== avant) {
+      await writeFile(chemin, apres, "utf8");
+      touchees++;
+    }
+  }
+  return touchees;
+}
+
 /** Slug URL depuis un nom : minuscules, sans accents, tirets. */
 function slug(s) {
   return String(s).toLowerCase()
@@ -337,6 +438,7 @@ function productPageHtml(p, lang, slugStr) {
   const price = Number(p.price || 0).toFixed(2);
   const inStock = Number(p.qty) > 0;
   const color = colorLabel(p.color, lang);
+  const beacon = beaconTag(CF_ANALYTICS_TOKEN);
   const specs = [
     color ? `${L.color} · ${escHtml(color)}` : "",
     p.size ? `${L.size} · ${escHtml(p.size)}` : "",
@@ -387,7 +489,7 @@ function productPageHtml(p, lang, slugStr) {
   .avail{font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.7 0.14 150);margin:0}
   .avail.out{color:oklch(0.62 0.17 28)}
   .buy{display:inline-block;margin-top:20px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;padding:13px 22px;background:oklch(0.74 0.13 55);color:oklch(0.19 0.012 60);border-radius:4px}
-</style>
+</style>${beacon ? "\n" + beacon : ""}
 </head>
 <body>
 <main class="wrap">
@@ -538,12 +640,22 @@ async function main() {
   if (hasPrerender) {
     html = html.replace(PRERENDER_MARKER, (_m, open, _old, close) => open + toPrerenderHtml(list) + close);
   }
+  html = withBeacon(html, CF_ANALYTICS_TOKEN);
   await writeFile(INDEX, html, "utf8");
   await writeProductPages(list);
+  const statiques = await writeStaticPageBeacons();
   console.log(`  → index.html + ${list.length} pages produit FR + ${list.length} EN + sitemap.xml`);
+  console.log(`  Analytics : ${CF_ANALYTICS_TOKEN
+    ? `beacon Cloudflare posé (accueil + produits + ${statiques} page(s) statique(s))`
+    : "aucun (CF_ANALYTICS_TOKEN non posé — inerte)"}`);
 }
 
-main().catch((e) => {
-  console.error("✗ build:", e);
-  process.exit(1);
-});
+// Ne lance le build QUE si le fichier est exécuté directement (`node build.mjs`).
+// Importé — par un test qui veut éprouver les fonctions pures ci-dessus — il ne
+// doit rien construire ni écrire.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((e) => {
+    console.error("✗ build:", e);
+    process.exit(1);
+  });
+}
