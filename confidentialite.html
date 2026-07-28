@@ -5,34 +5,36 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Politique de confidentialité — ART BEYOND CONVENIENCE</title>
 <link rel="icon" href="/favicon.ico" sizes="any">
-<script defer src="/_vercel/insights/script.js"></script>
-<script defer src="/_vercel/speed-insights/script.js"></script>
 <style>
-  /* Polices auto-hébergées (RGPD : aucune requête vers Google Fonts). */
-  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/syne-latin-700-normal.woff2') format('woff2'); }
-  @font-face { font-family: 'Syne'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fonts/syne-latin-800-normal.woff2') format('woff2'); }
+  /* Aligné sur la refonte de la boutique : thème sombre, Bricolage Grotesque +
+     Space Grotesk + Space Mono, polices AUTO-HÉBERGÉES (RGPD, aucune requête
+     vers un CDN de polices tiers). Fichiers : /fonts/. */
+  @font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/bricolage-grotesque-latin-700-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Bricolage Grotesque'; font-style: normal; font-weight: 800; font-display: swap; src: url('/fonts/bricolage-grotesque-latin-800-normal.woff2') format('woff2'); }
+  @font-face { font-family: 'Space Grotesk'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/space-grotesk-latin-400-normal.woff2') format('woff2'); }
   @font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 400; font-display: swap; src: url('/fonts/space-mono-latin-400-normal.woff2') format('woff2'); }
   @font-face { font-family: 'Space Mono'; font-style: normal; font-weight: 700; font-display: swap; src: url('/fonts/space-mono-latin-700-normal.woff2') format('woff2'); }
-
+  :root { --ink:#100E0C; --panel:#1A1613; --bone:#ECE6DA; --muted:#9A9184; --line:rgba(236,230,218,0.13); --accent:#EE5A2E; }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
-  body { background: oklch(0.955 0.006 70); color: oklch(0.22 0.012 60); font-family: 'Space Mono', monospace; -webkit-font-smoothing: antialiased; line-height: 1.75; }
+  body { background: var(--ink); color: var(--bone); font-family: 'Space Grotesk', sans-serif; -webkit-font-smoothing: antialiased; line-height: 1.75; }
   .wrap { max-width: 760px; margin: 0 auto; padding: 40px 22px 80px; }
   .top { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
-  .brand { font-family: 'Syne', sans-serif; font-weight: 800; font-size: 13px; letter-spacing: 0.14em; }
-  .back { font-size: 12px; letter-spacing: 0.08em; color: oklch(0.55 0.11 40); text-decoration: none; }
-  .back:hover { text-decoration: underline; }
-  h1 { font-family: 'Syne', sans-serif; font-weight: 800; font-size: clamp(26px, 5vw, 38px); margin: 22px 0 6px; }
-  .updated { font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.5; margin-bottom: 24px; }
-  .disclaimer { background: oklch(0.93 0.05 85); border: 1px solid oklch(0.72 0.12 75); padding: 14px 16px; font-size: 12.5px; line-height: 1.7; margin-bottom: 30px; }
-  h2 { font-family: 'Syne', sans-serif; font-weight: 700; font-size: 18px; margin: 32px 0 8px; }
-  p, li { font-size: 13.5px; }
+  .brand { font-family: 'Space Mono', monospace; font-weight: 700; font-size: 12px; letter-spacing: 0.16em; text-transform: uppercase; }
+  .back { font-family: 'Space Mono', monospace; font-size: 12px; letter-spacing: 0.08em; color: var(--muted); text-decoration: none; text-transform: uppercase; }
+  .back:hover { color: var(--accent); }
+  h1 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: clamp(28px, 5vw, 42px); line-height: 1.02; letter-spacing: -0.02em; margin: 22px 0 6px; }
+  .updated { font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); margin-bottom: 24px; }
+  .disclaimer { background: var(--panel); border: 1px solid var(--accent); padding: 14px 16px; font-size: 13px; line-height: 1.7; margin-bottom: 30px; }
+  h2 { font-family: 'Bricolage Grotesque', sans-serif; font-weight: 700; font-size: 19px; letter-spacing: -0.01em; margin: 32px 0 8px; }
+  p, li { font-size: 14px; }
   p { margin: 0 0 12px; }
   ul { margin: 0 0 12px; padding-left: 20px; }
   li { margin: 0 0 6px; }
-  .ph { background: oklch(0.9 0.06 85); padding: 1px 6px; font-weight: 700; border-radius: 3px; }
-  .foot { margin-top: 44px; padding-top: 20px; border-top: 1px solid oklch(0.22 0.012 60 / 0.12); font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; opacity: 0.5; }
-  a { color: oklch(0.55 0.11 40); }
+  .ph { background: var(--panel); border: 1px solid var(--line); padding: 1px 6px; font-family: 'Space Mono', monospace; font-size: 0.92em; }
+  .foot { margin-top: 44px; padding-top: 20px; border-top: 1px solid var(--line); font-family: 'Space Mono', monospace; font-size: 11px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--muted); }
+  a { color: var(--accent); }
+  a:hover { color: #ff6a3d; }
 </style>
 </head>
 <body>

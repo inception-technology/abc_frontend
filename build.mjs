@@ -457,7 +457,7 @@ function productPageHtml(p, lang, slugStr) {
 <link rel="alternate" hreflang="fr" href="${frUrl}">
 <link rel="alternate" hreflang="en" href="${enUrl}">
 <link rel="alternate" hreflang="x-default" href="${frUrl}">
-<meta name="theme-color" content="#12100f">
+<meta name="theme-color" content="#100E0C">
 <link rel="icon" href="/favicon.ico" sizes="any">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="ART BEYOND CONVENIENCE">
@@ -468,27 +468,35 @@ function productPageHtml(p, lang, slugStr) {
 <meta name="twitter:card" content="summary_large_image">${img ? `\n<meta name="twitter:image" content="${escHtml(img)}">` : ""}
 <script type="application/ld+json">${productLdJson(p, canonical, lang)}</script>
 <style>
-  @font-face{font-family:'Syne';font-weight:800;font-display:swap;src:url('/fonts/syne-latin-800-normal.woff2') format('woff2')}
+  /* Aligné sur la refonte de l'accueil : thème sombre, Bricolage Grotesque +
+     Space Grotesk + Space Mono, polices AUTO-HÉBERGÉES (RGPD, aucune Google Font). */
+  @font-face{font-family:'Bricolage Grotesque';font-weight:700;font-display:swap;src:url('/fonts/bricolage-grotesque-latin-700-normal.woff2') format('woff2')}
+  @font-face{font-family:'Bricolage Grotesque';font-weight:800;font-display:swap;src:url('/fonts/bricolage-grotesque-latin-800-normal.woff2') format('woff2')}
+  @font-face{font-family:'Space Grotesk';font-weight:400;font-display:swap;src:url('/fonts/space-grotesk-latin-400-normal.woff2') format('woff2')}
   @font-face{font-family:'Space Mono';font-weight:400;font-display:swap;src:url('/fonts/space-mono-latin-400-normal.woff2') format('woff2')}
   @font-face{font-family:'Space Mono';font-weight:700;font-display:swap;src:url('/fonts/space-mono-latin-700-normal.woff2') format('woff2')}
+  :root{--ink:#100E0C;--panel:#1A1613;--bone:#ECE6DA;--muted:#9A9184;--line:rgba(236,230,218,0.13);--accent:#EE5A2E}
   *{box-sizing:border-box}
-  body{margin:0;background:oklch(0.19 0.012 60);color:oklch(0.93 0.008 70);font-family:'Space Mono',ui-monospace,monospace;line-height:1.7;-webkit-font-smoothing:antialiased}
-  a{color:oklch(0.72 0.13 55)}
+  body{margin:0;background:var(--ink);color:var(--bone);font-family:'Space Grotesk',sans-serif;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:var(--bone);text-decoration:none}
+  a:hover{color:var(--accent)}
   .wrap{max-width:1000px;margin:0 auto;padding:28px 20px 80px}
-  .back{display:inline-block;font-size:12px;letter-spacing:0.06em;margin-bottom:26px}
+  .back{display:inline-block;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.06em;text-transform:uppercase;color:var(--muted);margin-bottom:26px}
+  .back:hover{color:var(--accent)}
   .grid{display:grid;grid-template-columns:1.1fr 1fr;gap:38px;align-items:start}
   @media(max-width:720px){.grid{grid-template-columns:1fr;gap:24px}}
-  .ph{background:oklch(0.16 0.01 60);border-radius:10px;overflow:hidden;aspect-ratio:1/1}
+  .ph{background:var(--panel);border:1px solid var(--line);overflow:hidden;aspect-ratio:4/5}
   .ph img{width:100%;height:100%;object-fit:cover;display:block}
-  .eyebrow{font-size:11px;letter-spacing:0.22em;text-transform:uppercase;color:oklch(0.72 0.13 55);margin:0 0 12px}
-  h1{font-family:'Syne',sans-serif;font-weight:800;font-size:clamp(26px,5vw,42px);line-height:1.03;letter-spacing:-0.01em;margin:0 0 8px;text-wrap:balance}
-  .unique{font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:oklch(0.7 0.012 70);margin:0 0 22px}
-  .desc{font-size:14px;color:oklch(0.87 0.01 70);max-width:54ch}
-  .specs{list-style:none;padding:0;margin:22px 0;display:flex;flex-direction:column;gap:6px;font-size:12px;letter-spacing:0.04em;color:oklch(0.75 0.012 70)}
-  .price{font-family:'Syne',sans-serif;font-weight:800;font-size:26px;margin:8px 0 2px}
-  .avail{font-size:12px;letter-spacing:0.08em;text-transform:uppercase;color:oklch(0.7 0.14 150);margin:0}
-  .avail.out{color:oklch(0.62 0.17 28)}
-  .buy{display:inline-block;margin-top:20px;font-size:12px;letter-spacing:0.1em;text-transform:uppercase;font-weight:700;padding:13px 22px;background:oklch(0.74 0.13 55);color:oklch(0.19 0.012 60);border-radius:4px}
+  .eyebrow{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.14em;text-transform:uppercase;color:var(--accent);margin:0 0 12px}
+  h1{font-family:'Bricolage Grotesque',sans-serif;font-weight:700;font-size:clamp(28px,5vw,46px);line-height:1.0;letter-spacing:-0.02em;margin:0 0 8px;text-wrap:balance}
+  .unique{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:var(--muted);margin:0 0 22px}
+  .desc{font-size:15px;line-height:1.72;color:color-mix(in srgb,var(--bone) 90%,transparent);max-width:54ch}
+  .specs{list-style:none;padding:0;margin:22px 0;display:flex;flex-direction:column;gap:6px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.04em;color:var(--muted)}
+  .price{font-family:'Space Mono',monospace;font-weight:700;font-size:24px;margin:8px 0 2px}
+  .avail{font-family:'Space Mono',monospace;font-size:11px;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);margin:0}
+  .avail.out{color:var(--accent)}
+  .buy{display:inline-flex;align-items:center;gap:10px;margin-top:20px;font-family:'Space Mono',monospace;font-size:12px;letter-spacing:0.08em;text-transform:uppercase;font-weight:700;padding:14px 24px;background:var(--accent);color:var(--ink)}
+  .buy:hover{background:#ff6a3d;color:var(--ink)}
 </style>${beacon ? "\n" + beacon : ""}
 </head>
 <body>
