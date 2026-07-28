@@ -88,13 +88,18 @@ const ALLOW_EMPTY = process.env.ABC_ALLOW_EMPTY_CATALOG === "1";
 // pour garder l'inertie par défaut et ne rien coder de spécifique au site dans
 // ce dépôt (public).
 // --------------------------------------------------------------------------- #
-const CF_ANALYTICS_TOKEN = (process.env.CF_ANALYTICS_TOKEN || "").trim();
+//: Valeur nettoyée : espaces retirés, et guillemets éventuels autour (au cas où
+//: on collerait `"abc…"` avec les guillemets, ou le morceau `{"token":"abc"}`).
+const CF_ANALYTICS_TOKEN = (process.env.CF_ANALYTICS_TOKEN || "")
+  .trim().replace(/^["']+|["']+$/g, "").trim();
 
-//: Le jeton Cloudflare est un identifiant de 32 caractères hexadécimaux. On
-//: refuse tout ce qui n'a pas cette forme : une valeur biscornue posée par
-//: erreur casserait l'attribut `data-cf-beacon` (donc le HTML) au lieu de rester
-//: sans effet.
-const CF_TOKEN_RE = /^[a-f0-9]{32}$/i;
+//: On n'IMPOSE PAS un format précis au jeton (les jetons Cloudflare peuvent
+//: varier ; l'exiger en 32 hexa rejetait des jetons pourtant valides). On exige
+//: seulement qu'il soit SANS DANGER pour l'attribut
+//: `data-cf-beacon='{"token":"…"}'` : lettres, chiffres, `-` et `_`, longueur
+//: raisonnable. Cela bloque toute injection (guillemets, chevrons, accolades,
+//: espaces casseraient l'attribut ou le HTML) sans écarter un jeton légitime.
+const CF_TOKEN_RE = /^[A-Za-z0-9_-]{8,128}$/;
 
 //: Repère un beacon Cloudflare déjà présent dans une page. Sert à l'IDEMPOTENCE :
 //: `build.mjs` réécrit les mêmes fichiers à chaque déploiement, on retire donc
@@ -102,17 +107,26 @@ const CF_TOKEN_RE = /^[a-f0-9]{32}$/i;
 //: retrait du jeton.
 const BEACON_RE = /\s*<script\b[^>]*\bcloudflareinsights\b[^>]*><\/script>/gi;
 
-/** Balise beacon pour un jeton donné, ou "" si absent/invalide. Fonction pure. */
+/** Balise beacon pour un jeton donné, ou "" si absent/non conforme. Fonction
+ *  PURE et sans effet de bord : l'avertissement d'un jeton rejeté est émis une
+ *  seule fois par `CF_BEACON` ci-dessous, pas à chaque appel (c'était 40 lignes
+ *  de bruit auparavant, une par page). */
 export function beaconTag(token) {
   const t = (token || "").trim();
-  if (!t) return "";
-  if (!CF_TOKEN_RE.test(t)) {
-    console.warn("  ⚠ CF_ANALYTICS_TOKEN ignoré : 32 caractères hexadécimaux "
-      + "attendus. Aucun beacon posé.");
-    return "";
-  }
+  if (!t || !CF_TOKEN_RE.test(t)) return "";
   return `<script defer src="https://static.cloudflareinsights.com/beacon.min.js" `
     + `data-cf-beacon='{"token": "${t}"}'></script>`;
+}
+
+//: Beacon calculé UNE fois pour tout le build. Un jeton posé mais non conforme
+//: est signalé ici, une seule fois — et le résumé de `main()` s'appuie dessus
+//: pour ne PAS annoncer « posé » quand rien n'a été injecté.
+const CF_BEACON = beaconTag(CF_ANALYTICS_TOKEN);
+if (CF_ANALYTICS_TOKEN && !CF_BEACON) {
+  console.warn("  ⚠ CF_ANALYTICS_TOKEN posé mais REJETÉ : jeton alphanumérique "
+    + "(lettres, chiffres, - et _), 8 à 128 caractères, attendu. Collez le jeton "
+    + "NU (celui entre guillemets de data-cf-beacon), sans le <script> ni les "
+    + "guillemets. Aucun beacon posé.");
 }
 
 /**
@@ -438,7 +452,7 @@ function productPageHtml(p, lang, slugStr) {
   const price = Number(p.price || 0).toFixed(2);
   const inStock = Number(p.qty) > 0;
   const color = colorLabel(p.color, lang);
-  const beacon = beaconTag(CF_ANALYTICS_TOKEN);
+  const beacon = CF_BEACON;
   const specs = [
     color ? `${L.color} · ${escHtml(color)}` : "",
     p.size ? `${L.size} · ${escHtml(p.size)}` : "",
@@ -653,9 +667,14 @@ async function main() {
   await writeProductPages(list);
   const statiques = await writeStaticPageBeacons();
   console.log(`  → index.html + ${list.length} pages produit FR + ${list.length} EN + sitemap.xml`);
-  console.log(`  Analytics : ${CF_ANALYTICS_TOKEN
+  // Résumé HONNÊTE : « posé » seulement si un beacon a réellement été injecté
+  // (CF_BEACON non vide), pas seulement parce que la variable est renseignée —
+  // un jeton posé mais rejeté ne doit pas s'afficher « posé ».
+  console.log(`  Analytics : ${CF_BEACON
     ? `beacon Cloudflare posé (accueil + produits + ${statiques} page(s) statique(s))`
-    : "aucun (CF_ANALYTICS_TOKEN non posé — inerte)"}`);
+    : (CF_ANALYTICS_TOKEN
+        ? "CF_ANALYTICS_TOKEN posé mais REJETÉ (format) — aucun beacon, voir l'avertissement ci-dessus"
+        : "aucun (CF_ANALYTICS_TOKEN non posé — inerte)")}`);
 }
 
 // Ne lance le build QUE si le fichier est exécuté directement (`node build.mjs`).

@@ -61,7 +61,7 @@ La boutique étant sur Vercel et non derrière le proxy Cloudflare, on pose le
 « beacon » à la main, au build.
 
 **Activer** : créer un site dans Cloudflare (*Web Analytics → Add a site*, hôte
-`www.artbeyondconvenience.fr`), copier le **jeton** (32 hexa) du snippet proposé
+`www.artbeyondconvenience.fr`), copier le **jeton** (la valeur entre guillemets de `data-cf-beacon='{"token":"…"}'`) du snippet proposé
 — *sans coller le snippet lui-même* —, puis poser `CF_ANALYTICS_TOKEN` dans les
 variables du projet Vercel et redéployer. `build.mjs` injecte alors le beacon sur
 **toutes** les pages (accueil, produits, légales, succès/annulation). Le jeton
