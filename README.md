@@ -1,7 +1,8 @@
 # ART BEYOND CONVENIENCE — Frontend (boutique)
 
-Boutique statique (mosaïque à recomposition, panier, FR/EN), sans dépendances ni
-framework. **Repo public → Vercel.** Le backend/admin est dans un **repo séparé (privé)**.
+Boutique statique (thème sombre éditorial, grille de pièces, panier, FR/EN),
+sans dépendances ni framework. **Repo public → Vercel.** Le backend/admin est
+dans un **repo séparé (privé)**.
 
 ## Contenu
 
@@ -12,8 +13,8 @@ framework. **Repo public → Vercel.** Le backend/admin est dans un **repo sépa
   courtoisie en anglais (bandeau précisant que la version FR prévaut).
 - `success.html`, `cancel.html` — pages de retour Stripe (lisent `abc_lang`,
   titre et textes selon la langue).
-- `fonts/` — polices auto-hébergées (Syne, Space Mono) : **aucune requête vers
-  Google Fonts** (RGPD).
+- `fonts/` — polices auto-hébergées (Bricolage Grotesque, Space Grotesk, Space
+  Mono) : **aucune requête vers Google Fonts** (RGPD).
 - `img/` — photos produits servies par la boutique.
 - `favicon.ico`, `logo.png` — identité visuelle.
 - `build.mjs` — script de build Vercel (voir ci-dessous).
@@ -32,7 +33,7 @@ L'API de prod est déjà déclarée en haut d'`index.html` :
 ```
 
 Au **déploiement**, `build.mjs` interroge `GET /api/products` et injecte le
-catalogue (noms, images, descriptions, prix) dans `index.html`. La mosaïque
+catalogue (noms, images, descriptions, prix) dans `index.html`. La grille
 s'affiche donc instantanément depuis le CDN Vercel, sans attendre le réveil de
 Railway. Répartition des rôles :
 
