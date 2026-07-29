@@ -155,6 +155,15 @@ class Handler(SimpleHTTPRequestHandler):
 
 
 def main():
+    # La console Windows est souvent en cp1252, qui n'a pas « → » (U+2192) :
+    # sans ça, le print d'accueil plante en UnicodeEncodeError. On force UTF-8 sur
+    # la sortie (les prints sont cosmétiques ; on ignore si reconfigure manque).
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            stream.reconfigure(encoding="utf-8")
+        except (AttributeError, ValueError):
+            pass
+
     p = argparse.ArgumentParser(
         description="Serveur de dev ABC (statique + /api/products même origine).",
         formatter_class=argparse.RawDescriptionHelpFormatter,
