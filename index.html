@@ -80,6 +80,11 @@
      déploiement, alors que qty change à chaque vente. La boutique n'autorise
      l'ajout au panier qu'une fois l'API confirmée (state.stockTrusted). -->
 <script id="abc-catalog" type="application/json">[]</script>
+<!-- Contenu éditable de la vitrine (réseaux sociaux, « à propos », playlist SoundCloud).
+     VIDE dans le repo : injecté au déploiement par build.mjs depuis l'API
+     (GET /api/site-content), puis appliqué au runtime par applySiteContent().
+     Un champ absent/vide laisse le contenu intégré ci-dessous par défaut. -->
+<script id="abc-site-content" type="application/json">{}</script>
 <!-- Données structurées du catalogue (ItemList Product/Offer), injectées au
      déploiement par build.mjs depuis la même source que le snapshot ci-dessus.
      availability et prix reflètent l'état du build ; vide en dev/local. -->
@@ -443,7 +448,7 @@
         <span class="kicker" id="aboutKicker">À propos</span>
         <h2 class="foot-title" id="footTitle">À propos</h2>
       </div>
-      <figure class="about-portrait"><span class="ghost" id="portraitCap">Portrait / atelier</span></figure>
+      <figure class="about-portrait" id="aboutPortrait"><span class="ghost" id="portraitCap">Portrait / atelier</span></figure>
     </div>
     <div class="about" id="aboutText"></div>
   </section>
@@ -477,10 +482,10 @@
     <div class="foot-col">
       <span class="foot-label" id="followLabel">Suivre</span>
       <div class="socials" id="socialsNav" aria-label="Réseaux sociaux">
-        <a href="https://www.instagram.com/split_the_lyricist/" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></a>
-        <a href="https://www.tiktok.com/@split_the_lyricist" target="_blank" rel="noopener" title="TikTok" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.31 2.05 1.53 3.4 3.5 3.6v2.45c-1.28.12-2.5-.28-3.62-1.02v5.72c0 3.35-2.4 5.75-5.56 5.75-3.02 0-5.32-2.3-5.32-5.3 0-3.2 2.62-5.5 6-5.13v2.63c-.42-.13-.86-.2-1.3-.2-1.4 0-2.4 1.02-2.4 2.4 0 1.4 1 2.47 2.42 2.47 1.5 0 2.48-1.12 2.48-2.82V3h3.42z"/></svg></a>
-        <a href="https://www.youtube.com/@ArtBeyondConvenience" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.41-4.73a2.5 2.5 0 0 0-1.76-1.76C19.3 5.1 12 5.1 12 5.1s-7.3 0-8.83.41A2.5 2.5 0 0 0 1.4 7.27C1 8.8 1 12 1 12s0 3.2.41 4.73a2.5 2.5 0 0 0 1.76 1.76C4.7 18.9 12 18.9 12 18.9s7.3 0 8.83-.41a2.5 2.5 0 0 0 1.76-1.76C23 15.2 23 12 23 12zM9.75 15.3V8.7L15.5 12l-5.75 3.3z"/></svg></a>
-        <a href="https://soundcloud.com/split_the_lyricist" target="_blank" rel="noopener" title="SoundCloud" aria-label="SoundCloud"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 14.2v2.8h.9v-2.8H2zm1.8-1.3V17h.9v-4.1h-.9zm1.8-.8V17h.9v-4.9h-.9zm1.8-.7V17h.9V11.4h-.9zm1.9.7V17h.9v-6.2h-.9zm2.6-3.2c-.5 0-1 .1-1.5.3V17h7.1a2.55 2.55 0 0 0 .1-5.1c-.25 0-.5.04-.73.1A4.02 4.02 0 0 0 12.7 8.9z"/></svg></a>
+        <a href="https://www.instagram.com/split_the_lyricist/" data-net="instagram" target="_blank" rel="noopener" title="Instagram" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.4" cy="6.6" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+        <a href="https://www.tiktok.com/@split_the_lyricist" data-net="tiktok" target="_blank" rel="noopener" title="TikTok" aria-label="TikTok"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M16.5 3c.31 2.05 1.53 3.4 3.5 3.6v2.45c-1.28.12-2.5-.28-3.62-1.02v5.72c0 3.35-2.4 5.75-5.56 5.75-3.02 0-5.32-2.3-5.32-5.3 0-3.2 2.62-5.5 6-5.13v2.63c-.42-.13-.86-.2-1.3-.2-1.4 0-2.4 1.02-2.4 2.4 0 1.4 1 2.47 2.42 2.47 1.5 0 2.48-1.12 2.48-2.82V3h3.42z"/></svg></a>
+        <a href="https://www.youtube.com/@ArtBeyondConvenience" data-net="youtube" target="_blank" rel="noopener" title="YouTube" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M23 12s0-3.2-.41-4.73a2.5 2.5 0 0 0-1.76-1.76C19.3 5.1 12 5.1 12 5.1s-7.3 0-8.83.41A2.5 2.5 0 0 0 1.4 7.27C1 8.8 1 12 1 12s0 3.2.41 4.73a2.5 2.5 0 0 0 1.76 1.76C4.7 18.9 12 18.9 12 18.9s7.3 0 8.83-.41a2.5 2.5 0 0 0 1.76-1.76C23 15.2 23 12 23 12zM9.75 15.3V8.7L15.5 12l-5.75 3.3z"/></svg></a>
+        <a href="https://soundcloud.com/split_the_lyricist" data-net="soundcloud" target="_blank" rel="noopener" title="SoundCloud" aria-label="SoundCloud"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M2 14.2v2.8h.9v-2.8H2zm1.8-1.3V17h.9v-4.1h-.9zm1.8-.8V17h.9v-4.9h-.9zm1.8-.7V17h.9V11.4h-.9zm1.9.7V17h.9v-6.2h-.9zm2.6-3.2c-.5 0-1 .1-1.5.3V17h7.1a2.55 2.55 0 0 0 .1-5.1c-.25 0-.5.04-.73.1A4.02 4.02 0 0 0 12.7 8.9z"/></svg></a>
       </div>
     </div>
     <nav class="foot-links" id="legalNav" aria-label="Informations légales">
@@ -1589,7 +1594,47 @@
   }
   var staleBanner = document.getElementById("staleBanner");
 
+  // Contenu éditable de la vitrine, injecté au build dans #abc-site-content (même
+  // mécanique que le catalogue). Applique réseaux sociaux, playlist SoundCloud,
+  // photo et textes « À propos » PAR-DESSUS les valeurs intégrées : un champ vide
+  // laisse le défaut du site. Robuste : îlot absent/vide/illisible -> ne touche à
+  // rien. Doit tourner AVANT renderChrome (qui lit UI[...].about).
+  function applySiteContent() {
+    var node = document.getElementById("abc-site-content");
+    if (!node) return;
+    var c;
+    try { c = JSON.parse(node.textContent || "{}"); } catch (e) { return; }
+    if (!c || typeof c !== "object") return;
+
+    ["instagram", "tiktok", "youtube", "soundcloud"].forEach(function (net) {
+      if (!c[net]) return;
+      var a = document.querySelector('#socialsNav a[data-net="' + net + '"]');
+      if (a) a.setAttribute("href", c[net]);
+    });
+
+    if (c.soundcloud_playlist) {
+      SC_SRC = "https://w.soundcloud.com/player/?url=" + encodeURIComponent(c.soundcloud_playlist)
+        + "&color=%23e0563a&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false";
+    }
+
+    if (c.about_fr) UI.fr.about = c.about_fr;
+    if (c.about_en) UI.en.about = c.about_en;
+
+    if (c.about_photo) {
+      var fig = document.getElementById("aboutPortrait");
+      if (fig) {
+        var img = document.createElement("img");
+        img.src = c.about_photo;
+        img.alt = "Split — portrait / atelier";
+        img.loading = "lazy";
+        fig.innerHTML = "";
+        fig.appendChild(img);
+      }
+    }
+  }
+
   applyCatalog(embeddedCatalog());   // 1. snapshot : affichage immédiat
+  applySiteContent();                // réseaux, à propos, playlist (build-injectés)
   renderChrome();
   openFromHash();                    // ouvre la pièce si l'URL est un lien profond
 

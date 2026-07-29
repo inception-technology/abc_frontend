@@ -57,6 +57,9 @@ const ITEMLIST_MARKER = /(<script id="abc-itemlist" type="application\/ld\+json"
 // Balise du catalogue prérendu (contenu HTML crawlable), même mécanique.
 const PRERENDER_MARKER = /(<noscript id="abc-prerender">)([\s\S]*?)(<\/noscript>)/;
 
+// Balise du contenu éditable de la vitrine (réseaux, à propos, playlist), même mécanique.
+const SITE_CONTENT_MARKER = /(<script id="abc-site-content" type="application\/json">)([\s\S]*?)(<\/script>)/;
+
 // Domaine canonique du site : @id / URL / images relatives des données structurées.
 const SITE = "https://www.artbeyondconvenience.fr";
 
@@ -215,6 +218,26 @@ async function fetchCatalog(apiBase) {
  */
 function toEmbeddedJson(list) {
   return JSON.stringify(list).replace(/<\//g, "<\\/");
+}
+
+/**
+ * Contenu éditable de la vitrine (GET /api/site-content). NON critique : la
+ * boutique embarque des valeurs par défaut, donc un échec ne fait PAS échouer le
+ * build — on injecte alors un objet vide et le front garde ses valeurs intégrées.
+ * L'échappement `</` protège la balise <script>, le contenu incluant du HTML
+ * (textes « à propos »).
+ */
+async function fetchSiteContent(apiBase) {
+  try {
+    const res = await fetch(apiBase + "api/site-content",
+                            { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    return (data && typeof data === "object" && !Array.isArray(data)) ? data : {};
+  } catch (e) {
+    console.warn(`  ⚠ contenu de vitrine non récupéré (${e.message}) — valeurs par défaut conservées`);
+    return {};
+  }
 }
 
 function summarize(list) {
@@ -761,6 +784,13 @@ async function main() {
   console.log(`  ItemList : ${hasItemList ? `${list.length} produit(s) en JSON-LD` : "balise absente — ignorée"}`);
   console.log(`  Prerender : ${hasPrerender ? `${list.length} pièce(s) en HTML crawlable` : "balise absente — ignorée"}`);
   console.log(`  Pages produit : ${list.length} FR + ${list.length} EN + sitemap.xml`);
+
+  const hasSiteContent = SITE_CONTENT_MARKER.test(html);
+  const siteContent = hasSiteContent ? await fetchSiteContent(apiBase) : {};
+  console.log(`  Contenu vitrine : ${hasSiteContent
+    ? `${Object.keys(siteContent).length} champ(s) injecté(s)`
+    : "balise absente — ignorée"}`);
+
   if (CHECK_ONLY) {
     console.log("  --check : rien n'a été écrit.");
     return;
@@ -772,6 +802,10 @@ async function main() {
   }
   if (hasPrerender) {
     html = html.replace(PRERENDER_MARKER, (_m, open, _old, close) => open + toPrerenderHtml(list) + close);
+  }
+  if (hasSiteContent) {
+    html = html.replace(SITE_CONTENT_MARKER,
+      (_m, open, _old, close) => open + toEmbeddedJson(siteContent) + close);
   }
   html = withBeacon(html, CF_ANALYTICS_TOKEN);
   await writeFile(INDEX, html, "utf8");
