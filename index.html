@@ -318,6 +318,8 @@
   .lb-buy { display: flex; align-items: center; gap: 14px; margin-top: 14px; flex-wrap: wrap; }
   .lb-price { font-family: var(--f-mono); font-weight: 700; font-size: 24px; color: var(--bone); }
   .lb-price.sold { color: var(--muted); text-decoration: line-through; }
+  .lb-share { display: inline-flex; align-items: center; gap: 8px; }
+  .lb-share svg { width: 15px; height: 15px; flex: none; }
   .btn-primary { appearance: none; background: var(--accent); color: var(--ink); border: 0; font-family: var(--f-mono); font-weight: 700; font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; padding: 14px 22px; cursor: pointer; transition: background .15s; }
   .btn-primary:hover { background: #ff6a3d; }
   .btn-primary[disabled] { background: transparent; color: var(--muted); border: 1px solid var(--line); cursor: not-allowed; }
@@ -567,6 +569,7 @@
       order: "Commande", unique: "Pièce unique",
       color: "Couleur", size: "Taille", ref: "Réf.",
       soldout: "Épuisé", inCart: "Déjà dans le panier", lastOne: "Dernière pièce",
+      share: "Partager", copied: "Lien copié", shareErr: "Partage impossible",
       // Refonte : chaînes du nouveau design (hero, catalogue, à propos, contact, footer).
       heroKicker: "Atelier Split",
       heroT1: "Vêtements upcyclés,", heroT2: "pièces uniques.",
@@ -605,6 +608,7 @@
       order: "Order", unique: "One-of-a-kind",
       color: "Color", size: "Size", ref: "Ref.",
       soldout: "Sold out", inCart: "Already in cart", lastOne: "Last one",
+      share: "Share", copied: "Link copied", shareErr: "Sharing failed",
       // Redesign : strings for the new design (hero, catalogue, about, contact, footer).
       heroKicker: "Split's Studio",
       heroT1: "Upcycled garments,", heroT2: "unique pieces.",
@@ -959,6 +963,28 @@
     if (state.cartOpen) renderCart();
     showToast(UI[state.lang].added + " — " + a.title);
   }
+  // Partage d'une pièce. Web Share API native si dispo (feuille de partage
+  // mobile) ; sinon copie du lien dans le presse-papiers, avec le même toast que
+  // le reste de l'app. L'URL est le deep-link #piece-<id>, rouvert au chargement
+  // (cf. openFromHash) — le partage pointe donc bien sur la pièce, pas l'accueil.
+  function shareProduct(a) {
+    if (!a) return;
+    var ui = UI[state.lang];
+    var url = location.origin + location.pathname + "#piece-" + a.id;
+    var title = a.title + " — ART BEYOND CONVENIENCE";
+    if (navigator.share) {
+      navigator.share({ title: title, text: title, url: url }).catch(function () {});
+      return;
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(url).then(
+        function () { showToast(ui.copied + " — " + a.title); },
+        function () { showToast(ui.shareErr); }
+      );
+      return;
+    }
+    showToast(ui.shareErr);
+  }
   function setQty(id, q) {
     var a = articlesById[id];
     var max = a ? a.stock : 0;
@@ -1223,6 +1249,12 @@
       addBtn.addEventListener("click", function () { if (canAdd(a)) { addToCart(a.id); openCart(); } });
       buy.appendChild(addBtn);
     }
+    var shareBtn = el("button", "btn-ghost lb-share");
+    shareBtn.type = "button";
+    shareBtn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>';
+    shareBtn.appendChild(txt("span", "", ui.share));
+    shareBtn.addEventListener("click", function () { shareProduct(a); });
+    buy.appendChild(shareBtn);
     body.appendChild(buy);
 
     card.appendChild(body);
