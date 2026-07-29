@@ -44,6 +44,8 @@ import { dirname, join } from "node:path";
 const HERE = dirname(fileURLToPath(import.meta.url));
 const INDEX = join(HERE, "index.html");
 const SITEMAP = join(HERE, "sitemap.xml");
+const FEED = join(HERE, "feed.xml");
+const FEED_EN = join(HERE, "feed-en.xml");
 const TIMEOUT_MS = 20_000;
 
 // Balise cible dans index.html. Le contenu est remplacé à chaque build.
@@ -60,6 +62,16 @@ const SITE = "https://www.artbeyondconvenience.fr";
 
 // Libellés catégorie pour les données structurées (codes internes -> FR lisible).
 const CAT_LABEL = { tshirt: "T-shirt upcyclé", sweater: "Sweat upcyclé", jacket: "Veste upcyclée" };
+
+// Taxonomie Google Shopping (flux Merchant) par code interne. Un mauvais code
+// précis nuit plus qu'un code large : on ne mappe finement que le sûr, et on
+// retombe sur « Clothing » pour le reste.
+const GOOGLE_CAT = {
+  tshirt: "Apparel & Accessories > Clothing > Shirts & Tops",
+  sweater: "Apparel & Accessories > Clothing > Shirts & Tops",
+  jacket: "Apparel & Accessories > Clothing > Outerwear > Coats & Jackets",
+};
+const GOOGLE_CAT_FALLBACK = "Apparel & Accessories > Clothing";
 
 const CHECK_ONLY = process.argv.includes("--check");
 
@@ -552,6 +564,100 @@ function sitemapXml(list, slugs) {
     + `${urls.join("\n")}\n</urlset>\n`;
 }
 
+// Titre / description du canal, et repli de description d'article, par langue.
+const FEED_CHANNEL = {
+  fr: {
+    title: "ART BEYOND CONVENIENCE — Pièces uniques upcyclées",
+    desc: "Vêtements upcyclés en pièces uniques, faits main en France.",
+    descFallback: (name) => `${name} — pièce unique upcyclée, faite main en France.`,
+  },
+  en: {
+    title: "ART BEYOND CONVENIENCE — One-of-a-kind upcycled pieces",
+    desc: "Upcycled garments, one-of-a-kind, handmade in France.",
+    descFallback: (name) => `${name} — one-of-a-kind upcycled piece, handmade in France.`,
+  },
+};
+
+/**
+ * Flux produits Google Merchant Center (RSS 2.0 + namespace `g:`), pour une
+ * langue donnée (`fr` -> feed.xml, `en` -> feed-en.xml).
+ *
+ * Destiné à la « récupération planifiée » de Merchant : une URL par langue que
+ * Google relit chaque jour. Régénéré à chaque build depuis le MÊME catalogue que
+ * les pages produit — une pièce retirée de l'API disparaît donc du flux au
+ * déploiement suivant, ce qui colle au modèle « pièce unique vendue = partie ».
+ *
+ * Choix imposés par ce modèle (sinon refus Merchant classiques) :
+ *   - identifier_exists=no : pas de GTIN ni MPN (sans ça, refus « GTIN manquant ») ;
+ *   - brand : obligatoire dès qu'il n'y a pas de GTIN ;
+ *   - condition=new : produit fini vendu neuf, même si la matière est upcyclée ;
+ *   - gender=unisex / age_group=adult : requis pour la catégorie Vêtements, valeurs
+ *     sûres faute de donnée par pièce ;
+ *   - availability : suit le stock du build (jamais in_stock pour une qty:0).
+ *
+ * Cohérence de langue : le flux EN emploie titre/catégorie/couleur EN, le lien
+ * vers la page /en/piece/, et la description EN. Faute de `descEn` (chantier de
+ * traduction en cours), il RETOMBE sur un repli EN générique — pas sur le texte
+ * FR — pour ne pas mélanger les langues dans un flux Merchant (Google le refuse).
+ *
+ * Une pièce SANS image ou SANS prix valide est ÉCARTÉE (Google les refuse) et
+ * comptée, pas glissée en silence. Le stock du snapshot n'est pas de confiance
+ * (cf. en-tête de fichier), mais c'est le meilleur signal au build ; Merchant le
+ * réconcilie ensuite via le JSON-LD des pages (mises à jour automatiques).
+ */
+function feedXml(list, slugs, lang) {
+  const L = I18N[lang];
+  const chan = FEED_CHANNEL[lang];
+  const items = [];
+  let skipped = 0;
+  for (const p of list) {
+    const img = absImage(p.img);
+    const price = Number(p.price || 0);
+    if (!img || !(price > 0)) { skipped++; continue; }
+
+    const s = slugs.get(p.id);
+    const link = lang === "en" ? `${SITE}/en/piece/${s}` : `${SITE}/piece/${s}`;
+    const catLabel = L.cat[p.cat] || L.fallbackCat;
+    const title = `${p.name} — ${catLabel}`.slice(0, 150);
+    // EN sans descEn -> repli EN générique (jamais la description FR : un flux
+    // EN avec du texte FR se fait refuser pour incohérence de langue).
+    const descRaw = lang === "en" ? (p.descEn || "") : (p.descFr || "");
+    const desc = (descRaw.trim() || chan.descFallback(p.name)).slice(0, 4900);
+    const color = colorLabel(p.color, lang);
+
+    const rows = [
+      `    <g:id>${escHtml(p.ref || `abc-${p.id}`)}</g:id>`,
+      `    <g:title>${escHtml(title)}</g:title>`,
+      `    <g:description>${escHtml(desc)}</g:description>`,
+      `    <g:link>${escHtml(link)}</g:link>`,
+      `    <g:image_link>${escHtml(img)}</g:image_link>`,
+      `    <g:availability>${Number(p.qty) > 0 ? "in_stock" : "out_of_stock"}</g:availability>`,
+      `    <g:price>${price.toFixed(2)} EUR</g:price>`,
+      `    <g:condition>new</g:condition>`,
+      `    <g:brand>ART BEYOND CONVENIENCE</g:brand>`,
+      `    <g:identifier_exists>no</g:identifier_exists>`,
+      `    <g:google_product_category>${escHtml(GOOGLE_CAT[p.cat] || GOOGLE_CAT_FALLBACK)}</g:google_product_category>`,
+      `    <g:product_type>${escHtml(catLabel)}</g:product_type>`,
+      `    <g:gender>unisex</g:gender>`,
+      `    <g:age_group>adult</g:age_group>`,
+    ];
+    if (color) rows.push(`    <g:color>${escHtml(color)}</g:color>`);
+    if (p.size) rows.push(`    <g:size>${escHtml(p.size)}</g:size>`);
+    items.push(`  <item>\n${rows.join("\n")}\n  </item>`);
+  }
+
+  const xml = `<?xml version="1.0" encoding="UTF-8"?>\n`
+    + `<rss version="2.0" xmlns:g="http://base.google.com/ns/1.0">\n`
+    + `<channel>\n`
+    + `  <title>${escHtml(chan.title)}</title>\n`
+    + `  <link>${SITE}/</link>\n`
+    + `  <description>${escHtml(chan.desc)}</description>\n`
+    + (items.length ? `${items.join("\n")}\n` : "")
+    + `</channel>\n</rss>\n`;
+
+  return { xml, count: items.length, skipped };
+}
+
 /** Écrit les pages produit statiques (FR + EN) et régénère le sitemap. */
 async function writeProductPages(list) {
   const slugs = buildSlugs(list);
@@ -563,6 +669,11 @@ async function writeProductPages(list) {
     await writeFile(join(HERE, "en", "piece", `${s}.html`), productPageHtml(p, "en", s), "utf8");
   }
   await writeFile(SITEMAP, sitemapXml(list, slugs), "utf8");
+  const feedFr = feedXml(list, slugs, "fr");
+  const feedEn = feedXml(list, slugs, "en");
+  await writeFile(FEED, feedFr.xml, "utf8");
+  await writeFile(FEED_EN, feedEn.xml, "utf8");
+  return { fr: feedFr, en: feedEn };
 }
 
 /**
@@ -664,9 +775,11 @@ async function main() {
   }
   html = withBeacon(html, CF_ANALYTICS_TOKEN);
   await writeFile(INDEX, html, "utf8");
-  await writeProductPages(list);
+  const feed = await writeProductPages(list);
   const statiques = await writeStaticPageBeacons();
-  console.log(`  → index.html + ${list.length} pages produit FR + ${list.length} EN + sitemap.xml`);
+  console.log(`  → index.html + ${list.length} pages produit FR + ${list.length} EN + sitemap.xml + feed.xml + feed-en.xml`);
+  console.log(`  Flux Merchant : feed.xml ${feed.fr.count} art. · feed-en.xml ${feed.en.count} art.`
+    + (feed.fr.skipped ? ` (${feed.fr.skipped} écarté(s) : sans image ou sans prix)` : ""));
   // Résumé HONNÊTE : « posé » seulement si un beacon a réellement été injecté
   // (CF_BEACON non vide), pas seulement parce que la variable est renseignée —
   // un jeton posé mais rejeté ne doit pas s'afficher « posé ».
