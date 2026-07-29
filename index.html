@@ -204,14 +204,17 @@
   .tile:hover .ph img { transform: scale(1.04); }
   .ph .ghost { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--f-display); font-weight: 800; font-size: 40px; color: rgba(236,230,218,0.14); }
   .tile .num { position: absolute; top: 0; left: 0; z-index: 2; font-family: var(--f-mono); font-size: 11px; font-weight: 700; letter-spacing: 0.08em; color: var(--bone); background: var(--ink); padding: 5px 9px; border-right: 1px solid var(--line); border-bottom: 1px solid var(--line); }
-  .metaov { display: flex; flex-direction: column; gap: 10px; }
+  /* flex:1 pour occuper toute la hauteur de la tile (les tiles d'une même ligne
+     sont étirées à la même hauteur par la grille) : le bloc bas peut alors être
+     poussé en pied de carte, alignant prix et bouton d'une tile à l'autre. */
+  .metaov { display: flex; flex-direction: column; gap: 10px; flex: 1; }
   .metaov .row { display: flex; justify-content: space-between; align-items: center; gap: 10px; }
   .metaov .cat { font-family: var(--f-mono); font-size: 11px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); }
   .metaov .tag { font-family: var(--f-mono); font-size: 9.5px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; padding: 4px 8px; white-space: nowrap; color: var(--muted); border: 1px solid var(--line); }
   .metaov .tag.sold { color: var(--ink); background: var(--accent); border-color: var(--accent); }
   .metaov .ttl { font-family: var(--f-display); font-weight: 600; font-size: 23px; line-height: 1.08; letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
   .metaov .excerpt { font-size: 14.5px; line-height: 1.55; margin: 0; color: var(--muted); display: -webkit-box; -webkit-line-clamp: 3; line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
-  .metaov .row2 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: 2px; padding-top: 12px; border-top: 1px solid var(--line); }
+  .metaov .row2 { display: flex; justify-content: space-between; align-items: baseline; gap: 10px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--line); }
   .metaov .edition { font-family: var(--f-mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
   .metaov .price { font-family: var(--f-mono); font-weight: 700; font-size: 17px; color: var(--bone); }
   .metaov .price.sold { color: var(--muted); text-decoration: line-through; }
