@@ -10,6 +10,11 @@ img/
 /piece/
 /en/
 
+# Flux produits Google Merchant : générés au build (build.mjs) depuis l'API,
+# comme les pages produit. Servis par Vercel après build, jamais versionnés.
+/feed.xml
+/feed-en.xml
+
 # Python (dev-server.py)
 __pycache__/
 *.pyc
