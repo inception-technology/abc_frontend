@@ -67,7 +67,7 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SEED = os.path.join(HERE, "..", "backend", "seed_products.json")
-DEFAULT_UPSTREAM = "https://web-production-62bbe.up.railway.app/"
+DEFAULT_UPSTREAM = "https://api.artbeyondconvenience.com/"
 
 # Réécrit la ligne 9 d'index.html : window.ABC_API_BASE = "https://…" -> ""
 API_BASE_RE = re.compile(rb'(window\.ABC_API_BASE\s*=\s*)"[^"]*"')
