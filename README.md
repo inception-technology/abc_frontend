@@ -18,7 +18,12 @@ dans un **repo séparé (privé)**.
 - `img/` — photos produits servies par la boutique.
 - `favicon.ico`, `logo.png` — identité visuelle.
 - `build.mjs` — script de build Vercel (voir ci-dessous).
-- `vercel.json` — config Vercel (cleanUrls, en-têtes de sécurité, cache des polices).
+- `sitemap.xml`, `feed.xml`, `feed-en.xml` — **générés au build** par `build.mjs`
+  (à partir du catalogue de l'API) : plan de site, et flux produits Google
+  Merchant Center FR + EN (voir plus bas). Ne pas éditer à la main.
+- `robots.txt` — déclare le sitemap ; interdit les pages de tunnel Stripe.
+- `vercel.json` — config Vercel (cleanUrls, redirection `/fr*`, en-têtes de
+  sécurité + CSP, cache des polices).
 - `dev-server.py` — serveur local de dev (non déployé, voir `.vercelignore`).
 
 ## Catalogue : snapshot au build + stock en direct
@@ -71,6 +76,41 @@ l'environnement pour garder l'inertie par défaut et ne rien coder de spécifiqu
 au site dans ce dépôt public. Les deux hôtes Cloudflare sont déjà autorisés dans
 la CSP de `vercel.json`. Garde-fou en CI : `scripts/check-analytics.mjs`.
 
+## Flux produits Google Merchant Center
+
+`build.mjs` génère **deux flux** au même moment que les pages produit, depuis le
+**même catalogue** (`GET /api/products`) :
+
+- `feed.xml` — marché **FR** (liens `/piece/<slug>`, titres/descriptions FR) ;
+- `feed-en.xml` — marché **EN** (liens `/en/piece/<slug>`, titres/couleurs EN).
+
+Format **RSS 2.0 + namespace `g:`**, servi en `application/xml`. Dans Merchant
+Center, on les branche en **récupération planifiée** (l'URL est relue chaque
+jour) — méthode « Ajouter des produits à partir d'un fichier », **pas** import
+ponctuel : le flux étant régénéré à chaque build, une pièce vendue en disparaît
+au déploiement suivant.
+
+Choix imposés par le modèle **pièces uniques faites main** (sinon refus Merchant
+classiques) :
+
+- `identifier_exists=no` — pas de GTIN ni MPN (sans quoi Google réclame un GTIN) ;
+- `brand` — obligatoire dès qu'il n'y a pas de GTIN ;
+- `condition=new` — produit fini vendu neuf, même si la matière est upcyclée ;
+- `gender=unisex` / `age_group=adult` — requis pour la catégorie Vêtements,
+  valeurs sûres faute de donnée par pièce ;
+- `availability` — suit `qty` du build (jamais `in_stock` pour une pièce à
+  `qty:0`) ; Merchant réconcilie ensuite via le JSON-LD des pages.
+
+Cohérence de langue : le flux EN retombe sur un **repli EN générique** quand
+`descEn` manque — jamais sur le texte FR (un flux EN contenant du FR se fait
+refuser). Une pièce sans image ou sans prix valide est **écartée** (et comptée
+dans le log de build), pas glissée en silence.
+
+⚠️ **Devise** : les prix sont en **EUR** (ce que la boutique facture). Merchant
+exige que la devise corresponde au pays cible du flux — cibler l'**Irlande**
+(zone euro) pour l'EN, ou activer la **conversion automatique de devise** pour
+viser UK/US.
+
 ## Langues et pages légales
 
 Le sélecteur FR/EN mémorise le choix dans `abc_lang` (localStorage). Les liens
@@ -82,3 +122,9 @@ légaux du pied de page suivent la langue : en EN ils pointent vers les pages
 
 Voir `DEPLOY.md`. En bref : repo GitHub connecté à Vercel (déploiement auto au
 push, `build.mjs` exécuté comme buildCommand), ou en local `vercel --prod`.
+
+**Redirection `/fr`** : une ancienne version du site utilisait un préfixe de
+langue `/fr` dans ses URLs ; Google avait indexé `…/fr`, qui renvoie désormais
+un 404 (le contenu est à la racine). `vercel.json` redirige donc `/fr` et
+`/fr/*` en **308 permanent** vers `/`, ce qui supprime le 404 et transfère le
+référencement vers la homepage.
