@@ -155,12 +155,14 @@
   .hdr .cartbtn .cart-count { display: inline-grid; place-items: center; min-width: 18px; height: 18px; padding: 0 5px; margin-left: 2px; background: var(--accent); color: var(--ink); font-weight: 700; font-size: 11px; }
   .hdr .cartbtn .cart-count:empty, .hdr .cartbtn .cart-count[data-zero="1"] { display: none; }
   .listenbtn svg { width: 14px; height: 14px; }
+  .langbtn svg, .cartbtn svg { width: 15px; height: 15px; flex: none; }
   .meta-right { display: none; }
   @media (max-width: 560px) {
     .brand { font-size: 0; }
     .brand::after { content: "ABC"; font-size: 12px; }
     .hdr button span:not(.cart-count) { display: none; }
     .listenbtn svg { width: 15px; height: 15px; }
+    .langbtn svg, .cartbtn svg { width: 16px; height: 16px; }
   }
 
   /* ---- Hero ---- */
@@ -386,8 +388,15 @@
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 14h3a2 2 0 0 1 2 2v3a2 2 0 0 1-2 2H4a1 1 0 0 1-1-1v-9a9 9 0 0 1 18 0v9a1 1 0 0 1-1 1h-2a2 2 0 0 1-2-2v-3a2 2 0 0 1 2-2h3"/></svg>
       <span id="listenBtnLabel">Écouter</span>
     </button>
-    <button class="langbtn" id="langBtn" type="button" title="FR / EN"><span aria-hidden="true">↔</span><span id="langLabel"></span></button>
-    <button class="cartbtn" id="cartBtn" type="button"><span id="cartWord"></span><span class="cart-count" id="cartCount" data-zero="1">0</span></button>
+    <button class="langbtn" id="langBtn" type="button" title="FR / EN">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18"/><path d="M12 3a15 15 0 0 1 0 18a15 15 0 0 1 0-18"/></svg>
+      <span id="langLabel"></span>
+    </button>
+    <button class="cartbtn" id="cartBtn" type="button">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18"/><path d="M16 10a4 4 0 0 1-8 0"/></svg>
+      <span id="cartWord"></span>
+      <span class="cart-count" id="cartCount" data-zero="1">0</span>
+    </button>
   </div>
 </header>
 
