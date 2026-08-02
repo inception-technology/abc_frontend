@@ -53,6 +53,19 @@ Images produits :
 - fichiers relatifs (`cobain-27.jpg`…) → servis par cette boutique (`img/`) ;
 - URLs absolues (Cloudflare R2) renvoyées par l'admin → utilisées telles quelles.
 
+## Contenu éditable de la vitrine
+
+Réseaux sociaux, section « À propos » (texte FR/EN + photo) et lien de la playlist
+SoundCloud sont **pilotés depuis l'admin** (backend, module `site_content`), plus
+codés en dur. Même mécanique que le catalogue :
+
+- au build, `build.mjs` lit `GET /api/site-content` et injecte le résultat dans
+  l'îlot `<script id="abc-site-content">` d'`index.html` (échec **non fatal** :
+  les valeurs par défaut intégrées à la page sont conservées) ;
+- au runtime, `applySiteContent()` applique ces valeurs **par-dessus** les défauts
+  — hrefs des réseaux, lecteur SoundCloud, textes « À propos », photo du portrait.
+  Un champ laissé vide garde le contenu intégré.
+
 ## Mesure d'audience (Cloudflare Web Analytics)
 
 **Inerte par défaut.** Sans la variable `CF_ANALYTICS_TOKEN`, aucun script de
